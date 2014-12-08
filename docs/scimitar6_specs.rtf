@@ -1,0 +1,184 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1187\cocoasubrtf400
+{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+\margl1440\margr1440\vieww22500\viewh13240\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural
+
+\f0\b\fs24 \cf0 \ul \ulc0 Scimitar 6.0 Specifications\ulnone \
+
+\b0 \
+
+\b New things to include:\
+
+\b0 - In submission script, include SIGINT (Ctrl-C) handler as so:\
+import signal\
+import sys\
+def sigint_handler( signal, frame ):\
+	print "SIGINT: Excecution canceled by user. Job submission terminated."\
+	sys.exit(0)\
+signal.signal( signal.SIGINT, signal_handler)\
+Source: {\field{\*\fldinst{HYPERLINK "http://stackoverflow.com/questions/1112343/how-do-i-capture-sigint-in-python"}}{\fldrslt http://stackoverflow.com/questions/1112343/how-do-i-capture-sigint-in-python}}\
+\
+- A generalized struct/enum (need to double check these definitions?) for defining global constants in a namespace. Examples include:\
+	- Scimitar.Globals.DEFAULT_SCRIPT_FILENAME, Scimitar.Globals.DEFAULT_EXEC_FILENAME, Scimitar.Globals.SCRIPT_HEADER\
+	- Scimitar.Globals.JOB_CONTROL_CLASS\
+	- Scimitar.Globals.PROCESS_POLLING_PERIOD\
+\
+- Minimize job ctrl class and include in script.\
+\
+- Eliminate 100% CPU usage by script when running. Poll process status every 5 seconds.\
+\
+- Create command line interpreter as an alternative to the full GUI for simple tasks, like updating an existing run file's parameters and creating the script.\
+\
+- Add flag to script that allows you to restart a run from jobs that are incomplete.\
+\
+- Add flag to script that allows you to check the status of the run. (see checkstat.py which is already written).\
+\
+
+\b Class Hierarchy (Inheritance and Interfaces)
+\b0 \
+General GUI class layout:\
+- ScimitarMainForm\
+- RunForm\
+- SpeciesForm\
+- HelpForm\
+\
+Scimitar Backend classes:\
+- ScimitarRun (dependency: ScimitarSpecies)\
+- ScimitarSpecies \
+- ScimitarScriptGenerator\
+- ScriptModule
+\b  (interface)\
+
+\b0     - child: ResourceManagerModule (handles execution)\
+    - child: PreExecutionModule\
+    - child: PostExecutionModule\
+    - child: JobControlModule\
+- SSHController\
+\
+
+\b Class definitions:\
+
+\b0 \ul ScimitarSpecies\ulnone \
+
+\i Members:
+\i0 \
+	name - descriptive name given to the species.\
+	dimensions - (rows, cols) tuple assigned to the number of rows and columns in this species (or perhaps a list since tuples are immutable in Python).\
+	parameterGrid - two-dimensional list containing values in column-major order.\
+	gridHeadings - 
+\b const
+\b0  the names of the headers corresponding to columns in parameterGrid.\
+
+\i \
+Method Signatures:\
+
+\i0 	checkGrid() - checks grid for any errors and reports helpful error messages to the user.\
+
+\b \
+
+\b0 \ul ScimitarRun\ulnone \
+
+\i Members: 
+\b \
+	
+\i0\b0 name - descriptive name given to the run.\
+	species - ScimitarSpecies object that is updated from the default to reflect the current run configuration.\
+	loadedResourceManager - Resource manager module loaded, there should only be one.\
+	loadedPreExecutionModules - List of pre-execution modules to be included.\
+	loadedPostExecutionModules - List of post-execution modules to be included.\
+	basicSettings - Class (struct) that holds some of the very basic settings common to all run, regardless of module settings.\
+		basicSettings.scriptFilename\
+		basicSettings.scriptLocation\
+		basicSettings.execFilename\
+		basicSettings.inputFilename\
+		basicSettings.sourcePath\
+		basicSettings.jobControlFilename\
+\
+
+\i Method Signatures:\
+
+\i0 	openRun( 
+\i string 
+\i0 filename ) - Loads run.\
+	saveRun( 
+\i string 
+\i0 filename ) - Serializes and saves run in a JSON-compatible format.\
+	loadSpecies( 
+\i string
+\i0  filename ) - Clears the parameter grid and loads a species file with its default values.\
+\
+\ul ScimitarScriptGenerator\
+\ulnone friend ScimitarRun.\
+\ul \
+
+\i \ulnone Members:\
+Method Signatures:\
+	
+\i0 createScript(
+\i  ScimitarRun
+\i0  run ) - 
+\b static method
+\b0  Performs final error checking and generates scripts. Implements command structure for modules\
+		Things that need to be accomplished with this method:\
+			1. Query the Species grid to perform a final check on the grid. If there are errors, report them to the user and terminate.\
+			2. Expand all ranges and evaluate all functions in the grid. Ranges and functions should reduce down to a list of parameters and should not be treated differently past this point.\
+			3. If all is well, sort the pre execution and post execution arrays by priority order.\
+			4. Check all modules for dependencies and add them appropriately to the beginning of the script.\
+			5. Query all pre execution modules (using the interface definition that is established) for all contributions to the script.\
+			6. Query the resource manager module for all contributions, including execution, PBS script creation, and script submission.\
+			7. Query all post execution modules for all contributions to the script.\
+			8. Write the script to file.\
+		\
+		
+\i Note:
+\i0  Steps 5, 6, and 7 should be designed to take advantage of polymorphism; all modules should be handed by their interface specifications, and should not rely on any additional methods.
+\i \
+\
+
+\i0 \ul ScriptModule (interface)\
+
+\i \ulnone Members:\
+	
+\i0 priorityOrder - order in which things take preference in the script execution.
+\i \
+Method Signatures:
+\i0 \
+\
+
+\b General Implementation Details:\
+NOTE: Backward compatibility with previous versions of Scimitar should NOT be considered or implemented.
+\b0 \
+
+\b \
+
+\i\b0 Permitted Species Datatypes:\
+
+\i0 The following data types should be the only explicitly permitted strongly-typed data:\
+	
+\b int\
+	real\
+	complex\
+	functions\
+
+\b0 	
+\b range 
+\b0 (assumed to 
+\b always take the type float
+\b0 ).\
+	
+\b file\
+\
+
+\i\b0 Species and Run Save File Specification:\
+
+\i0 Runs and Species should be serialized using JSON specification. The entire ScimitarRun and ScimitarSpecies instances should be completely serialized (if that will work well, need to confirm).\
+\
+
+\i Script Options Tabs\
+
+\i0 Basic - Script file parameters, stuff about code, job control settings, script tasks. As before.\
+Resource Manager - Selection and configuration of ResourceManager module.\
+Parallelism - Option to add modules relating to MPI, CUDA, and OpenMP (modules like these need to talk with the ResourceManager to modify execution call).\
+Advanced\
+	}
