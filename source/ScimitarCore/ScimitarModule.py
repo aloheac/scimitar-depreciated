@@ -11,13 +11,8 @@
 # University of North Carolina at Chapel Hill
 ####################################################################
 
-from enum import Enum
-
-class ModuleTypes(Enum)
-	GeneralModule = 0
-	ResourceManager = 1
-	PreExecutionModule = 2
-	PostExecutionModule = 3
+class ModuleTypes:
+	GeneralModule, ResourceManager, PreExecutionModule, PostExecutionModule = range( 4 )
 	
 class ScimitarModule:
 	def __init__( self, name, moduleType, priority, run ):

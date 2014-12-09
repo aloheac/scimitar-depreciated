@@ -1,7 +1,7 @@
 ####################################################################
-# Scimitar: ScimitarModule
+# Scimitar: ScimitarModule:PreExecutionModule
 #
-# Base class definition for a Scimitar module.
+# Class definition for a Scimitar pre-execution module.
 #
 # Version 6.0
 # 8 December 2014
@@ -13,10 +13,10 @@
 
 from ScimitarModule import *
 
-class ResourceManagerModule( ScimitarModule ):
-	def __init__( self, name ):
-		ScimitarModule.__init__( self, name, ModuleTypes.ResourceManager, 0 )
+class PreExecutionModule( ScimitarModule ):
+	def __init__( self, name, priority, run ):
+		ScimitarModule.__init__( self, name, ModuleTypes.PreExecutionModule, priority, run )
 		
 	def getScriptContribution( self ):
-		return "print Script contribution not implemented for ResourceManger module '" \
+		return "print Script contribution not implemented for PreExecution module '" \
 			   + self.name +  "'!"
