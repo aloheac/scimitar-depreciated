@@ -4,7 +4,7 @@
 # Class definition for a Scimitar species.
 #
 # Version 6.0
-# 7 December 2014
+# 8 December 2014
 #
 # Joaquin E. Drut, Andrew C. Loheac
 # Department of Physics and Astronomy
@@ -15,15 +15,26 @@ from Globals import *
 
 DEFAULT_NUM_ROWS = 10
 DEFAULT_NUM_COLUMNS = 4
+DEFAULT_EMPTY_ELEMENT = '--'
 
+"""
+Standard exception that will be raised by ScimitarGrid if an error is detected in
+checkGrid().
+"""
 class ScimitarGridError(Exception):
 	def __init__( self, value ):
 		self.value = value
 		
 	def __str__( self ):
 		return repr( self.value )
-		
-class ScimitarSpecies:		
+
+"""
+Species object for Scimitar. This should only directly be used by the core.
+"""
+class ScimitarSpecies:
+		"""
+		Default constructor.
+		"""	
 		def __init__( self ):
 			# The name of the species.
 			self.name = "DefaultSpecies"
@@ -41,10 +52,13 @@ class ScimitarSpecies:
 			emptyRow = []
 			# For each field in a row, add the default empty string to the list.
 			for i in range( 0, DEFAULT_NUM_COLUMNS ):
-				emptyRow.append( '--' )
+				emptyRow.append( str( DEFAULT_EMPTY_ELEMENT ) )
 			for j in range( 0, DEFAULT_NUM_ROWS ):
 				self.parameterGrid.append( list( emptyRow ) )
 		
+		"""
+		Add a blank row to the parameter grid of the species.
+		"""
 		def addRow( self, numRowBefore ):
 			# Increment the row dimensions by one.
 			self.numRows += 1
@@ -52,22 +66,46 @@ class ScimitarSpecies:
 			# Generate a list that is an empty row.
 			emptyRow = []
 			for i in range( 1, dimensions[1] ):
-				emptyRow.append( '--' )
+				emptyRow.append( str( DEFAULT_EMPTY_ELEMENT ) )
 				
 			# Insert the new row into the two-dimensional list parameterGrid. Note that
 			# emptyRow must be a copy, hence the constructor call.
 			self.parameterGrid.insert( numRowBefore, list( emptyRow ) )
 			
+		"""
+		Set a member element of the parameter grid identified by the row and column.
+		"""
 		def setElement( self, row, column, newValue ):
 			self.parameterGrid[row][column] = newValue
-			
+		
+		"""
+		Get a member element of the parameter grid identified by the row and column.
+		"""	
 		def getElement( self, row, column ):
 			return self.parameterGrid[row][column]
 			
+		"""
+		Print the parameter grid to STDOUT.
+		"""
 		#TODO: Make this look nice!
 		def printGrid( self ):
 			print self.parameterGrid
 			
+		"""
+		Check if a range value is valid.
+		"""
+		def isValidRange( value ):
+			nums = value.split( ':' )
+			for i in range( 0, 2 ):
+				try:
+					float( nums[i] )
+				except ValueError:
+					return false
+			return true
+			
+		"""
+		Check the parameter grid for any errors, and if there are any, raise an exception.
+		"""
 		def checkGrid( self ):
 			# Check that the variable names are strings that do not start with a number
 			# and do not contain backslashes, do not contain spaces.
@@ -86,3 +124,25 @@ class ScimitarSpecies:
 				element = self.getElement( i, 1 )
 				if element not in validDataTypes:
 					raise ScimitarGridError( "Data type '" + element + "' in row " + str( i ) + " is not a valid type." ) 
+					
+			# Check that the values match the data types.
+			for i in range( 0, self.numRows ):
+				dataType = self.getElement( i, 1 )
+				value = self.getElement( i, 2 )
+				if dataType == "int":
+					try:
+						int( value )
+					except ValueError:
+						raise ScimitarGridError( "Value '" + value + "' in row " + int( i ) + " is not a valid int." )
+				elif dataType == "real":
+					try:
+						float( value )
+					except ValueError:
+						raise ScimitarGridError( "Value '" + value + "' in row " + int( i ) + " is not a valid real." )
+				elif dataType == "range":
+					if not isValidRange( value ):
+						raise ScimitarGridError( "Value '" + value + " in row " + int( i ) + " is not a valid range." )
+				elif dataType == "file":
+					pass
+				elif dataType == "function":
+					pass

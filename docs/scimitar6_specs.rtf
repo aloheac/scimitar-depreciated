@@ -26,11 +26,13 @@ Source: {\field{\*\fldinst{HYPERLINK "http://stackoverflow.com/questions/1112343
 \
 - Minimize job ctrl class and include in script.\
 \
-- Eliminate 100% CPU usage by script when running. Poll process status every 5 seconds.\
+- Eliminate 100% CPU usage by script when running. Poll process status every 5 seconds. (specified by Scimitar.Globals.PROCESS_POLLING_PERIOD)\
 \
 - Create command line interpreter as an alternative to the full GUI for simple tasks, like updating an existing run file's parameters and creating the script.\
+	- Implement a basic predictive token sort of thing (need to think about this more\'85)\
 \
 - Add flag to script that allows you to restart a run from jobs that are incomplete.\
+	- Scans over job control files to see which runs have not completed.\
 \
 - Add flag to script that allows you to check the status of the run. (see checkstat.py which is already written).\
 \
@@ -44,6 +46,7 @@ General GUI class layout:\
 - HelpForm\
 \
 Scimitar Backend classes:\
+- ScimitarCore (container for everything else)\
 - ScimitarRun (dependency: ScimitarSpecies)\
 - ScimitarSpecies \
 - ScimitarScriptGenerator\
@@ -54,7 +57,7 @@ Scimitar Backend classes:\
     - child: PreExecutionModule\
     - child: PostExecutionModule\
     - child: JobControlModule\
-- SSHController\
+- SSHController (worry about later\'85)\
 \
 
 \b Class definitions:\
@@ -69,11 +72,17 @@ Scimitar Backend classes:\
 	gridHeadings - 
 \b const
 \b0  the names of the headers corresponding to columns in parameterGrid.\
+		Heading names: Variable, Type, Value, DirectoryOrder, Notes\
 
 \i \
 Method Signatures:\
 
 \i0 	checkGrid() - checks grid for any errors and reports helpful error messages to the user.\
+		- Things to check:\
+			Are variable names valid (no spaces, variable name does not start with a number)?\
+			Are all data type names legitimate? If so, do the values match the data type?\
+			Is there at least one variable with a specified DirOrder?  Is each DirOrder unique and consecutive?\
+	int calcNumberOfRuns() - calculates the number of runs that will be executed by the script.\
 
 \b \
 
