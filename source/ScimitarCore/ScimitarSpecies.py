@@ -13,15 +13,25 @@
 
 from Globals import *
 
-DEFAULT_NUM_ROWS = 10
+DEFAULT_NUM_ROWS = 3
 DEFAULT_NUM_COLUMNS = 4
 DEFAULT_EMPTY_ELEMENT = '--'
 
 """
-Standard exception that will be raised by ScimitarGrid if an error is detected in
+Standard exception that will be raised by ScimitarSpecies if an error is detected in
 checkGrid().
 """
-class ScimitarGridError(Exception):
+class ScimitarGridError( Exception ):
+	def __init__( self, value ):
+		self.value = value
+		
+	def __str__( self ):
+		return repr( self.value )
+
+"""
+Exception that will be raised if a general error is encountered (i.e. index bounds).
+"""	
+class ScimitarSpeciesError( Exception ):
 	def __init__( self, value ):
 		self.value = value
 		
@@ -55,22 +65,43 @@ class ScimitarSpecies:
 				emptyRow.append( str( DEFAULT_EMPTY_ELEMENT ) )
 			for j in range( 0, DEFAULT_NUM_ROWS ):
 				self.parameterGrid.append( list( emptyRow ) )
+			self.parameterGrid = [['ab', 'int', '1', '2'], ['ab', 'int', '1', '1'], ['ab', 'real', '1', '--']]
 		
 		"""
 		Add a blank row to the parameter grid of the species.
 		"""
 		def addRow( self, numRowBefore ):
+			# Make sure the given index is valid, if not raise an exception.
+			if numRowBefore >= self.numRows:
+				raise ScimitarSpeciesError( 'Index of row to add a new row after is out of range!' )
+				return
+		
 			# Increment the row dimensions by one.
 			self.numRows += 1
 			
 			# Generate a list that is an empty row.
 			emptyRow = []
-			for i in range( 1, dimensions[1] ):
+			for i in range( 1, self.numColumns ):
 				emptyRow.append( str( DEFAULT_EMPTY_ELEMENT ) )
 				
 			# Insert the new row into the two-dimensional list parameterGrid. Note that
 			# emptyRow must be a copy, hence the constructor call.
 			self.parameterGrid.insert( numRowBefore, list( emptyRow ) )
+			
+		"""
+		Delete a row from the parameter grid.
+		"""
+		def deleteRow( self, index ):
+			# Make sure the given index is valid, if not raise an exception.
+			if index >= self.numRows:
+				raise ScimitarSpeciesError( 'Index of row to delete is out of range!' )
+				return
+				
+			# Delete the row from the data structure.
+			del self.parameterGrid[index]
+			
+			# Decrement the number of rows by one.
+			self.numRows -= 1
 			
 		"""
 		Set a member element of the parameter grid identified by the row and column.
@@ -129,20 +160,39 @@ class ScimitarSpecies:
 			for i in range( 0, self.numRows ):
 				dataType = self.getElement( i, 1 )
 				value = self.getElement( i, 2 )
-				if dataType == "int":
+				if dataType.strip() == "int":
 					try:
 						int( value )
 					except ValueError:
-						raise ScimitarGridError( "Value '" + value + "' in row " + int( i ) + " is not a valid int." )
-				elif dataType == "real":
+						raise ScimitarGridError( "Value '" + value + "' in row " + str( i ) + " is not a valid int." )
+				elif dataType.strip() == "real":
 					try:
 						float( value )
 					except ValueError:
-						raise ScimitarGridError( "Value '" + value + "' in row " + int( i ) + " is not a valid real." )
-				elif dataType == "range":
+						raise ScimitarGridError( "Value '" + value + "' in row " + str( i ) + " is not a valid real." )
+				elif dataType.strip() == "range":
 					if not isValidRange( value ):
-						raise ScimitarGridError( "Value '" + value + " in row " + int( i ) + " is not a valid range." )
-				elif dataType == "file":
+						raise ScimitarGridError( "Value '" + value + " in row " + str( i ) + " is not a valid range." )
+				elif dataType.strip() == "file":
 					pass
-				elif dataType == "function":
+				elif dataType.strip() == "function":
 					pass
+					
+			# Check that a correct directory order exists.
+			directoryOrders = []
+			for i in range( 0, self.numRows ):
+				if not self.getElement( i, 3 ).strip() == DEFAULT_EMPTY_ELEMENT:
+					directoryOrders.append( self.getElement( i, 3 ) )
+			
+			directoryOrders.sort()
+			
+			# Make sure that the first element is '1'.
+			if not directoryOrders[0].strip() == '1':
+				raise ScimitarGridError( "The parameter grid must contain a directory order of 1." )
+				 
+			# Make sure that the rest of the dir orders are consecutive.
+			currentOrderToCheck = 1
+			for i in range( 1, len( directoryOrders ) ):
+				currentOrderToCheck += 1
+				if ( not directoryOrders[i].strip() == str( currentOrderToCheck ) ) and ( not directoryOrders[i].strip() == DEFAULT_EMPTY_ELEMENT ):
+					raise ScimitarGridError( "All directory orders must be consecutive." )
