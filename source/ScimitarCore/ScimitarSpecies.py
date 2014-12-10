@@ -99,7 +99,7 @@ class ScimitarSpecies:
 				emptyRow.append( str( DEFAULT_EMPTY_ELEMENT ) )
 			for j in range( 0, DEFAULT_NUM_ROWS ):
 				self.parameterGrid.append( list( emptyRow ) )
-			self.parameterGrid = [['ab', 'range', '1:1:3', '2'], ['ab', 'int', '1', '1'], ['ab', 'real', '1', '--']]
+			self.parameterGrid = [['a', 'int', '5', '1'],['b','range','1:1:10','2'],['c','real','6,7,8,9','3']]
 		
 		"""
 		Add a blank row to the parameter grid of the species.
@@ -232,21 +232,48 @@ class ScimitarSpecies:
 			currentOrderToCheck = 1
 			for i in range( 1, len( directoryOrders ) ):
 				currentOrderToCheck += 1
-				if ( not directoryOrders[i].strip() == str( currentOrderToCheck ) ) and ( not directoryOrders[i].strip() == DEFAULT_EMPTY_ELEMENT ):
+				if ( not directoryOrders[i].strip() == str( currentOrderToCheck ) ) and \
+				   ( not directoryOrders[i].strip() == DEFAULT_EMPTY_ELEMENT ):
 					raise ScimitarGridError( "All directory orders must be consecutive." )
-					
-			def generateRunListing( self ):
-				runListing = []
-				
-				# Get list of directory orders.
-				directoryOrders = []
+		
+		"""
+		Get a list of all the runs that will be executed.
+		"""			
+		def generateRunListing( self ):
+			# Get list of directory orders.
+			directoryOrders = []
+			for i in range( 0, self.numRows ):
+				if not self.getElement( i, 3 ).strip() == DEFAULT_EMPTY_ELEMENT:
+					directoryOrders.append( self.getElement( i, 3 ) )
+			directoryOrders.sort()
+			
+			# Get rows with expanded values for each directory order.
+			rowsToInclude = []
+			for directoryOrder in directoryOrders:
 				for i in range( 0, self.numRows ):
-					if not self.getElement( i, 3 ).strip() == DEFAULT_EMPTY_ELEMENT:
-						directoryOrders.append( self.getElement( i, 3 ) )
-				directoryOrders.sort()
+					if self.getElement( i, 3 ) == directoryOrder:
+						rowsToInclude.append( [ self.getElement( i, 0 ), _expandValues( self.getElement( i, 2 ), self.getElement( i, 1 ) ) ] )
+						
+			# Generate the run listing from these rows.
+			runListing = []
+			# Start with the first row:
+			for value in rowsToInclude[0][1]:
+				runListing.append( rowsToInclude[0][0] + "_" + str( value )  + "/" )
+			# Remove the first row from rowsToInclude:
+			del rowsToInclude[0]
+			
+			# Iterate over the remaining rows.
+			for row in rowsToInclude:
+				newRunListing = []
+				for run in runListing:
+					for value in row[1]:
+						newRunListing.append( run + row[0] + "_" + str( value ) + "/" )
+				runListing = list( newRunListing )
 				
-				# Iterate over each directory order.
-				
-				
-					
-									
+			return runListing
+		
+		"""
+		Get a count of the number of runs.
+		"""
+		def getRunCount( self ):
+			return len( self.generateRunListing() )	
