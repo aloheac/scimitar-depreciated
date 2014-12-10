@@ -18,7 +18,8 @@ class CompileSource( PreExecutionModule ):
 		PreExecutionModule.__init__( self, "Compile Source", 10, run )
 		
 	def getScriptContribution( self ):
-		contribution  = "from subprocess import Popen\n"
+		contribution  = "# ***** Pre Execution: Compile Source *****\n"
+		contribution += "from subprocess import Popen\n"
 		contribution += "import os\n"
 		contribution += "print '>> Compiling executable from source...'\n"
 		contribution += "initWorkingDir = os.path.dirname(os.path.abspath(__file__))\n"
@@ -30,5 +31,6 @@ class CompileSource( PreExecutionModule ):
 		contribution += "os.chdir(initWorkingDir)\n"
 		contribution += "proc = Popen('cp " + self.run.runSettings.sourcePath + "/" + self.run.runSettings.executableFilename + " .', shell=True)\n"
 		contribution += "proc.wait()\n"
+		contribution += "# ***** End of Compile Source *****\n\n"
 		
 		return contribution

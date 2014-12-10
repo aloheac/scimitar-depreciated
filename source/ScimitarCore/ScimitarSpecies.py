@@ -4,7 +4,7 @@
 # Class definition for a Scimitar species.
 #
 # Version 6.0
-# 8 December 2014
+# 10 December 2014
 #
 # Joaquin E. Drut, Andrew C. Loheac
 # Department of Physics and Astronomy
