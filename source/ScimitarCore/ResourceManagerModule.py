@@ -14,8 +14,8 @@
 from ScimitarModule import *
 
 class ResourceManagerModule( ScimitarModule ):
-	def __init__( self, name ):
-		ScimitarModule.__init__( self, name, ModuleTypes.ResourceManager, 0 )
+	def __init__( self, name, run ):
+		ScimitarModule.__init__( self, name, ModuleTypes.ResourceManager, 0, run )
 		
 	def getScriptContribution( self ):
 		return "print Script contribution not implemented for ResourceManger module '" \

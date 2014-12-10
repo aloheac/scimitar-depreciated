@@ -38,7 +38,7 @@ def _sortModuleList( moduleList ):
 	for i in range( 0, len( moduleList ) ):
 		for j in range( len( moduleList ) - 1, i, -1 ):
 			if moduleList[ j ].priority < moduleList[ j - 1 ].priority:
-				moduleList[ j ], moduleList[ j-1 ] = moduleList[ j-1], moduleList[ j ]
+				moduleList[ j ], moduleList[ j-1 ] = moduleList[ j-1 ], moduleList[ j ]
 				
 # Just a struct containing a bunch of configuration settings.
 class RunSettings:
@@ -94,9 +94,6 @@ class ScimitarRun:
 		else:
 			raise ScimitarRunError( "Module '" + module.name + "' does not have a valid type." )
 		
-	def getRunCount( self ):
-		pass
-		
 	def getReportCard( self ):
 		pass
 		
@@ -113,10 +110,7 @@ class ScimitarRun:
 			script += module.getScriptContribution()
 		
 		# Load the execution module.
-		try:
-			script += self.activeResourceManager.getScriptContribution()
-		except:
-			raise ScimitarRunError( "There does not appear to be a valid ResourceManager loaded!" )
+		script += self.activeResourceManager.getScriptContribution()
 		
 		# Load the post-execution module.
 		for module in self.activePostExecutionModules:
@@ -124,5 +118,3 @@ class ScimitarRun:
 			
 		script += ">> Scimitar execution script complete.\n"
 		return script
-			
-		

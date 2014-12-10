@@ -11,16 +11,16 @@
 # University of North Carolina at Chapel Hill
 ####################################################################
 
+from ResourceManagerModule import *
+
 class SingleMachineResourceManager( ResourceManagerModule ):
-	def __init__( self ):
-		ResourceManagerModule.__init__( self, "Single Machine" )
+	def __init__( self, run ):
+		ResourceManagerModule.__init__( self, "Single Machine", run )
 		
-	def getScriptContribution():
-		if self.run.RunSettings.optionInputRedirection == 1:
+	def getScriptContribution( self ):
+		if self.run.runSettings.optionDisableInputRedirection == 0:
 			inputRedirection = " < "
 		else:
 			inputRedirection = " "
 		
-		return "./" self.run.RunSettings.executableFilename + inputRedirection \ 
-		       + self.run.RunSettings.inputFilename + " > " \
-		       + self.run.RunSettings.outputFilename
+		return "print ./" + self.run.runSettings.executableFilename + inputRedirection + self.run.runSettings.inputFilename + " > " + self.run.runSettings.outputFilename + "\n"
