@@ -39,6 +39,40 @@ class ScimitarSpeciesError( Exception ):
 		return repr( self.value )
 
 """
+Given a value entered into the grid, return a list of the expanded structure (i.e.
+expand all ranges and functions).
+"""
+# ASSERTION: All values are valid and of the matching type.	
+def _expandValues( value, type ):
+	if type == "int" or type == "real":
+		# Something could be a list: 1,2,3,4.
+		return value.split(',')
+	if type == "range":
+		allValues = []	
+		# Something could be a list of ranges: 1:0.5:3,5:0.1:7.
+		splitRanges = value.split(',')
+		for splitRange in splitRanges:
+			minimum = float( splitRange.split(':')[0] )
+			step = float( splitRange.split(':')[1] )
+			maximum = float( splitRange.split(':')[2] )
+			while minimum <= maximum:
+				allValues.append( minimum )
+				minimum += step
+		return allValues
+
+"""
+Check if a range value is valid.
+"""
+def _isValidRange( value ):
+	nums = value.split( ':' )
+	for i in range( 0, 2 ):
+		try:
+			float( nums[i] )
+		except ValueError:
+			return False
+	return True
+
+"""
 Species object for Scimitar. This should only directly be used by the core.
 """
 class ScimitarSpecies:
@@ -65,7 +99,7 @@ class ScimitarSpecies:
 				emptyRow.append( str( DEFAULT_EMPTY_ELEMENT ) )
 			for j in range( 0, DEFAULT_NUM_ROWS ):
 				self.parameterGrid.append( list( emptyRow ) )
-			self.parameterGrid = [['ab', 'int', '1', '2'], ['ab', 'int', '1', '1'], ['ab', 'real', '1', '--']]
+			self.parameterGrid = [['ab', 'range', '1:1:3', '2'], ['ab', 'int', '1', '1'], ['ab', 'real', '1', '--']]
 		
 		"""
 		Add a blank row to the parameter grid of the species.
@@ -162,16 +196,20 @@ class ScimitarSpecies:
 				value = self.getElement( i, 2 )
 				if dataType.strip() == "int":
 					try:
-						int( value )
+						allValues = _expandValues( value, "int" )
+						for val in allValues:
+							int( val )
 					except ValueError:
 						raise ScimitarGridError( "Value '" + value + "' in row " + str( i ) + " is not a valid int." )
 				elif dataType.strip() == "real":
 					try:
-						float( value )
+						allValues = _expandValues( value, "real" )
+						for val in allValues:
+							float( val )
 					except ValueError:
 						raise ScimitarGridError( "Value '" + value + "' in row " + str( i ) + " is not a valid real." )
 				elif dataType.strip() == "range":
-					if not isValidRange( value ):
+					if not _isValidRange( value ):
 						raise ScimitarGridError( "Value '" + value + " in row " + str( i ) + " is not a valid range." )
 				elif dataType.strip() == "file":
 					pass
@@ -196,3 +234,19 @@ class ScimitarSpecies:
 				currentOrderToCheck += 1
 				if ( not directoryOrders[i].strip() == str( currentOrderToCheck ) ) and ( not directoryOrders[i].strip() == DEFAULT_EMPTY_ELEMENT ):
 					raise ScimitarGridError( "All directory orders must be consecutive." )
+					
+			def generateRunListing( self ):
+				runListing = []
+				
+				# Get list of directory orders.
+				directoryOrders = []
+				for i in range( 0, self.numRows ):
+					if not self.getElement( i, 3 ).strip() == DEFAULT_EMPTY_ELEMENT:
+						directoryOrders.append( self.getElement( i, 3 ) )
+				directoryOrders.sort()
+				
+				# Iterate over each directory order.
+				
+				
+					
+									
