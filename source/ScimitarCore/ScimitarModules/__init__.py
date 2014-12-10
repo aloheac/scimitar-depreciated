@@ -20,3 +20,4 @@ from PostExecutionModule import *
 # Implemented modules
 from HeaderModule import *
 from SingleMachineResourceManager import *
+from CompileSource import *

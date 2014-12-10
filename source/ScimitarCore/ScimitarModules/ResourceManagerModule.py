@@ -1,7 +1,7 @@
 ####################################################################
-# Scimitar: ScimitarModule
+# Scimitar: ScimitarModule:ResourceManagerModule
 #
-# Base class definition for a Scimitar module.
+# Base class definition for a Scimitar resource manager module.
 #
 # Version 6.0
 # 8 December 2014

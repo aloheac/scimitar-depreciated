@@ -274,4 +274,4 @@ class ScimitarSpecies:
 		Get a count of the number of runs.
 		"""
 		def getRunCount( self ):
-			return len( self.generateRunListing() )	
+			return len( self.generateRunListing() )
