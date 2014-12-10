@@ -11,8 +11,6 @@
 # University of North Carolina at Chapel Hill
 ####################################################################
 
-from Globals import *
-
 DEFAULT_NUM_ROWS = 3
 DEFAULT_NUM_COLUMNS = 4
 DEFAULT_EMPTY_ELEMENT = '--'

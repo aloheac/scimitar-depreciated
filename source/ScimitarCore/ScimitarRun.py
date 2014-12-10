@@ -11,7 +11,7 @@
 # University of North Carolina at Chapel Hill
 ####################################################################
 
-from ScimitarModule import *
+from ScimitarModules import *
 from ScimitarSpecies import *
 
 DEFAULT_SCRIPT_FILENAME = "myscript.py"
@@ -116,5 +116,5 @@ class ScimitarRun:
 		for module in self.activePostExecutionModules:
 			script += module.getScriptContribution()
 			
-		script += ">> Scimitar execution script complete.\n"
+		script += "print >> Scimitar execution script complete.\n"
 		return script

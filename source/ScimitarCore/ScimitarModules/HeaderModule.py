@@ -18,8 +18,8 @@ class HeaderModule( PreExecutionModule ):
 		PreExecutionModule.__init__( self, "Header Module", 1, run )
 		
 	def getScriptContribution( self ):
-		contribution  = "***************************************\n"
-		contribution += "* Scimitar Execution Script\n"
-		contribution += "* Version 6.0\n"
-		contribution += "***************************************\n"
+		contribution  = "print ***************************************\n"
+		contribution += "print * Scimitar Execution Script\n"
+		contribution += "print * Version 6.0\n"
+		contribution += "print ***************************************\n"
 		return contribution
