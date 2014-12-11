@@ -11,7 +11,7 @@
 # University of North Carolina at Chapel Hill
 ####################################################################
 
-from ScimitarModules import *
+import ScimitarModules
 from ScimitarSpecies import *
 
 DEFAULT_SCRIPT_FILENAME = "myscript.py"
@@ -65,27 +65,27 @@ class ScimitarRun:
 		self.activePostExecutionModules = []
 	
 	def activateModule( self, module ):
-		if module.moduleType == ModuleTypes.ResourceManager:
+		if module.moduleType == ScimitarModules.ModuleTypes.ResourceManager:
 			self.activeResourceManager = module
-		elif module.moduleType == ModuleTypes.PreExecutionModule:
+		elif module.moduleType == ScimitarModules.ModuleTypes.PreExecutionModule:
 			self.activePreExecutionModules.append( module )
-		elif module.moduleType == ModuleTypes.postExecutionModule:
+		elif module.moduleType == ScimitarModules.ModuleTypes.PostExecutionModule:
 			self.activePostExecutionModules.append( module )
 		else:
 			raise ScimitarRunError( "Module '" + module.name + "' does not have a valid type." )
 		
 	def deactivateModule( self, module ):
-		if module.moduleType == ModuleTypes.ResourceManager:
+		if module.moduleType == ScimitarModules.ModuleTypes.ResourceManager:
 			# Note that here we assume that we want the resource manager removed no matter
 			# what (even if the passed resource manager does match the current one).
 			self.activeResourceManager = "NO_RESOURCE_MANAGER"
-		elif module.moduleType == ModuleTypes.PreExecutionModule:
+		elif module.moduleType == ScimitarModules.ModuleTypes.PreExecutionModule:
 			for i in range( 0, len( self.activePreExecutionModules ) ):
 				if module == self.activePreExecutionModules[i]:
 					del self.activePreExecutionModules[i]
 					return
 			raise ScimitarRunError( "Provided module is not active." )
-		elif module.moduleType == ModuleTypes.postExecutionModule:
+		elif module.moduleType == ScimitarModules.ModuleTypes.PostExecutionModule:
 			for i in range( 0, len( self.activePostExecutionModules ) ):
 				if module == self.activePostExecutionModules[i]:
 					del self.activePostExecutionModules[i]
@@ -110,11 +110,14 @@ class ScimitarRun:
 			script += module.getScriptContribution()
 		
 		# Load the execution module.
+		if self.activeResourceManager == "NO_RESOURCE_MANAGER":
+			raise ScimitarRunError( "There does not seem to be a valid resource manager loaded!")
+			return
 		script += self.activeResourceManager.getScriptContribution()
 		
 		# Load the post-execution module.
 		for module in self.activePostExecutionModules:
 			script += module.getScriptContribution()
 			
-		script += "print >> Scimitar execution script complete.\n"
+		script += "\nprint '>> Scimitar execution script complete.'\n"
 		return script

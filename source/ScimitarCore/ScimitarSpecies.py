@@ -41,11 +41,11 @@ Given a value entered into the grid, return a list of the expanded structure (i.
 expand all ranges and functions).
 """
 # ASSERTION: All values are valid and of the matching type.	
-def _expandValues( value, type ):
-	if type == "int" or type == "real":
+def _expandValues( value, valueType ):
+	if valueType == "int" or valueType == "real":
 		# Something could be a list: 1,2,3,4.
 		return value.split(',')
-	if type == "range":
+	if valueType == "range":
 		allValues = []	
 		# Something could be a list of ranges: 1:0.5:3,5:0.1:7.
 		splitRanges = value.split(',')
@@ -155,18 +155,6 @@ class ScimitarSpecies:
 			print self.parameterGrid
 			
 		"""
-		Check if a range value is valid.
-		"""
-		def isValidRange( value ):
-			nums = value.split( ':' )
-			for i in range( 0, 2 ):
-				try:
-					float( nums[i] )
-				except ValueError:
-					return false
-			return true
-			
-		"""
 		Check the parameter grid for any errors, and if there are any, raise an exception.
 		"""
 		def checkGrid( self ):
@@ -225,7 +213,7 @@ class ScimitarSpecies:
 			# Make sure that the first element is '1'.
 			if not directoryOrders[0].strip() == '1':
 				raise ScimitarGridError( "The parameter grid must contain a directory order of 1." )
-				 
+			
 			# Make sure that the rest of the dir orders are consecutive.
 			currentOrderToCheck = 1
 			for i in range( 1, len( directoryOrders ) ):
@@ -250,7 +238,7 @@ class ScimitarSpecies:
 			for directoryOrder in directoryOrders:
 				for i in range( 0, self.numRows ):
 					if self.getElement( i, 3 ) == directoryOrder:
-						rowsToInclude.append( [ self.getElement( i, 0 ), _expandValues( self.getElement( i, 2 ), self.getElement( i, 1 ) ) ] )
+						rowsToInclude.append( [ self.getElement( i, 0 ), _expandValues( self.getElement( i, 2 ).strip(), self.getElement( i, 1 ) ) ] )
 						
 			# Generate the run listing from these rows.
 			runListing = []

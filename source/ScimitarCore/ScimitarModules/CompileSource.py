@@ -11,7 +11,7 @@
 # University of North Carolina at Chapel Hill
 ####################################################################
 
-from PreExecutionModule import *
+from PreExecutionModule import PreExecutionModule
 
 class CompileSource( PreExecutionModule ):
 	def __init__( self, run ):
