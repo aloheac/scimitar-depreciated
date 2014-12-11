@@ -11,7 +11,7 @@
 # University of North Carolina at Chapel Hill
 ####################################################################
 
-from ResourceManagerModule import *
+from ResourceManagerModule import ResourceManagerModule
 
 class SingleMachineResourceManager( ResourceManagerModule ):
 	def __init__( self, run ):
@@ -51,4 +51,4 @@ class SingleMachineResourceManager( ResourceManagerModule ):
 		contribution += "				runningJobs.remove( process )\n"
 		contribution += "		sleep( " + str( self.procCheckWaitTime ) + " )\n"
 		contribution += "# ***** End of ResourceManager: Single Machine *****\n\n"
-		return contribution #"proc = Popen(./" + self.run.runSettings.executableFilename + inputRedirection + self.run.runSettings.inputFilename + " > " + self.run.runSettings.outputFilename + ", shell=True)\n"
+		return contribution

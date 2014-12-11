@@ -14,16 +14,18 @@
 import wx
 import wx.richtext as wx_richtext
 import time
+from ScimitarRunForm import *
 
 MENU_ID_OPEN_RUN = 100
 MENU_ID_NEW_RUN = 101
+COLOR_RED = (255, 0, 0)
 
 class RichLogControl( wx_richtext.RichTextCtrl ):
 	def __init__( self, panel ):
-		wx.richtext.RichTextCtrl.__init__( self, panel, size=(300,400), style=wx.VSCROLL|wx.HSCROLL )
+		wx_richtext.RichTextCtrl.__init__( self, panel, size=(300,400), style=wx.VSCROLL|wx.HSCROLL )
 	
 	def WriteLogError( self, err ):
-		self.BeginTextColour( (255, 0, 0) )
+		self.BeginTextColour( COLOR_RED )
 		self.BeginBold()
 		self.WriteText( "Error: " )
 		self.EndBold()
@@ -43,7 +45,7 @@ class RichLogControl( wx_richtext.RichTextCtrl ):
 
 class ScimitarMainForm( wx.Frame ):
 	def __init__( self ):
-		wx.Frame.__init__( self, None, -1, 'Scimitar' )
+		wx.Frame.__init__( self, None, -1, 'Scimitar', size=(400, 500) )
 		self.InitializeUI()
 		
 	def InitializeUI( self ):
@@ -85,6 +87,7 @@ class ScimitarMainForm( wx.Frame ):
 		# ***** EVENT BINDINGS *****
 		self.Bind( wx.EVT_MENU, self.onExit, menuFile_Quit )
 		
+		self.Bind( wx.EVT_TOOL, self.onNewRun, toolbar_newRun )
 		self.Bind( wx.EVT_TOOL, self.onExit, toolbar_exit )
 		# ***** END OF EVENT BINDINGS *****
 		
@@ -101,7 +104,7 @@ class ScimitarMainForm( wx.Frame ):
 		
 		self.Show()
 		
-		self.log.WriteLogText("Welcome to Scimitar!")
+		self.log.WriteLogHeader("Welcome to Scimitar!")
 		self.log.WriteLogText("Version 6.0 alpha (Dec 2014)\n")
 		self.log.WriteLogText("Need some guidance getting started?")
 		self.log.WriteLogText("Click on the 'Help' button above.\n")
@@ -109,3 +112,7 @@ class ScimitarMainForm( wx.Frame ):
 		
 	def onExit( self, evt ):
 		self.Close()
+		
+	def onNewRun(self, evt):
+		newRunEditor = ScimitarRunForm( self )
+		self.log.WriteLogText("Creating a new run.")
