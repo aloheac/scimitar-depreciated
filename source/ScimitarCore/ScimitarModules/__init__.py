@@ -21,3 +21,4 @@ from PostExecutionModule import *
 from HeaderModule import *
 from SingleMachineResourceManager import *
 from CompileSource import *
+from CreateDirectoryStructure import *

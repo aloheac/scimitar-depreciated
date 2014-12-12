@@ -14,6 +14,7 @@
 import wx
 import wx.richtext as wx_richtext
 import time
+import ScimitarCore
 from ScimitarRunForm import *
 
 MENU_ID_OPEN_RUN = 100
@@ -102,8 +103,6 @@ class ScimitarMainForm( wx.Frame ):
 		self.mainPanel.SetSizerAndFit( self.mainBoxSizer )
 		# ***** END OF MAIN PANEL *****
 		
-		self.Show()
-		
 		self.log.WriteLogHeader("Welcome to Scimitar!")
 		self.log.WriteLogText("Version 6.0 alpha (Dec 2014)\n")
 		self.log.WriteLogText("Need some guidance getting started?")
@@ -114,5 +113,5 @@ class ScimitarMainForm( wx.Frame ):
 		self.Close()
 		
 	def onNewRun(self, evt):
-		newRunEditor = ScimitarRunForm( self )
+		newRunEditor = ScimitarRunForm( self, ScimitarCore.ScimitarRun( ScimitarCore.ScimitarSpecies() ) )
 		self.log.WriteLogText("Creating a new run.")
