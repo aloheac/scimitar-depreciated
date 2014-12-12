@@ -21,6 +21,7 @@ class RunNotebook( wx.Notebook ):
         
         parameterGridPanel = wx.Panel(self, -1)
         settingsPanel = wx.Panel(self, -1)
+        modulesPanel = wx.Panel(self, -1)
         
         parameterGridSizer = wx.BoxSizer( wx.HORIZONTAL )
         RunForm.speciesGrid = ParameterGrid( parameterGridPanel )
@@ -36,6 +37,7 @@ class RunNotebook( wx.Notebook ):
         
         self.AddPage(parameterGridPanel, "Parameter Grid")
         self.AddPage(settingsPanel, "Run Configuration")
+        self.AddPage(modulesPanel, "Execution Settings")
         
 class ParameterGrid( wx_grid.Grid ):
     def __init__(self, parent ):
@@ -88,6 +90,7 @@ class ScimitarRunForm( wx.Frame ):
         
         # Add toolbar event bindings.
         self.Bind( wx.EVT_TOOL, self.onReportCard, toolbar_reportCard )  
+        self.Bind( wx.EVT_TOOL, self.onCreateScript, toolbar_createScript )
         self.Bind( wx.EVT_TOOL, self.onSaveAsRun, toolbar_saveAs )                           
         # ***** END OF TOOLBAR *****
         
@@ -103,10 +106,27 @@ class ScimitarRunForm( wx.Frame ):
     	self.MainLog.WriteLogHeader("\nReport Card")
         try:
         	self.run.species.checkGrid()
-        except ScimitarCore.ScimitarGridError as err:
+        except (ScimitarCore.ScimitarGridError, ScimitarCore.ScimitarRunError) as err:
         	self.MainLog.WriteLogError( err.value )
         	return
         self.MainLog.WriteLogText( self.run.getReportCard() )
+        
+    def onCreateScript(self, evt):
+    	self.MainLog.WriteLogHeader("\nGenerate Script")
+    	self.MainLog.WriteLogText("Checking parameter grid for errors...")
+    	try:
+    		self.run.species.checkGrid()
+    	except ScimitarCore.ScimitarGridError as err:
+    		self.MainLog.WriteLogError( err.value )
+    		return
+    	self.MainLog.WriteLogText("Parameter grid verified. Checking run settings and generating execution script...")
+    	
+    	try:
+    		self.run.generateScript()
+    	except ScimitarCore.ScimitarRunError as err:
+    		self.MainLog.WriteLogError( err.value )
+    		return
+    	self.MainLog.WriteLogText("Done! The script is located at '" + self.run.runSettings.scriptFilename + "'.")
         
     def onSaveAsRun(self, evt):
         saveFileDialog = wx.FileDialog( self, "Save Scimitar Run", "", "", "Scimitar Run files (*.srn)|*.srn", wx.FD_SAVE|wx.FD_OVERWRITE_PROMPT )

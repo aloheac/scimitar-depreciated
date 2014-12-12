@@ -25,6 +25,9 @@ class RichLogControl( wx_richtext.RichTextCtrl ):
 	def __init__( self, panel ):
 		wx_richtext.RichTextCtrl.__init__( self, panel, size=(300,400), style=wx.VSCROLL|wx.HSCROLL )
 	
+	"""
+	Write an error to the log file in the main window.
+	"""
 	def WriteLogError( self, err ):
 		self.MoveEnd()
 		self.BeginTextColour( COLOR_RED )
@@ -34,19 +37,41 @@ class RichLogControl( wx_richtext.RichTextCtrl ):
 		self.WriteText( err )
 		self.EndTextColour()
 		self.Newline()
+		self.ScrollIntoView( self.GetCaretPosition(), 0 )
 		
+	"""
+	Write standard text to the log file in the main window.
+	"""
 	def WriteLogText( self, text ):
 		self.MoveEnd()
 		self.WriteText( text )
 		self.Newline()
-		
+		self.ScrollIntoView( self.GetCaretPosition(), 0 )
+	
+	"""
+	Write standard text to the log file in the main window.
+	"""	
 	def WriteLogHeader( self, text ):
 		self.MoveEnd()
 		self.BeginBold()
 		self.WriteText( text )
 		self.EndBold()
 		self.Newline()
-
+		self.ScrollIntoView( self.GetCaretPosition(), 0 )
+		
+	"""
+	Write important information to the log file in the main window.
+	"""
+	def WriteLogInformation( self, text ):
+		self.MoveEnd()
+		self.BeginTextColour( (0, 0, 255) )
+		self.BeginBold()
+		self.WriteText( text )
+		self.EndBold()
+		self.EndTextColour()
+		self.Newline()
+		
+		
 class ScimitarMainForm( wx.Frame ):
 	def __init__( self ):
 		wx.Frame.__init__( self, None, -1, 'Scimitar', size=(400, 300) )
