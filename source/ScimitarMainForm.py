@@ -26,6 +26,7 @@ class RichLogControl( wx_richtext.RichTextCtrl ):
 		wx_richtext.RichTextCtrl.__init__( self, panel, size=(300,400), style=wx.VSCROLL|wx.HSCROLL )
 	
 	def WriteLogError( self, err ):
+		self.MoveEnd()
 		self.BeginTextColour( COLOR_RED )
 		self.BeginBold()
 		self.WriteText( "Error: " )
@@ -35,10 +36,12 @@ class RichLogControl( wx_richtext.RichTextCtrl ):
 		self.Newline()
 		
 	def WriteLogText( self, text ):
+		self.MoveEnd()
 		self.WriteText( text )
 		self.Newline()
 		
 	def WriteLogHeader( self, text ):
+		self.MoveEnd()
 		self.BeginBold()
 		self.WriteText( text )
 		self.EndBold()
@@ -46,7 +49,7 @@ class RichLogControl( wx_richtext.RichTextCtrl ):
 
 class ScimitarMainForm( wx.Frame ):
 	def __init__( self ):
-		wx.Frame.__init__( self, None, -1, 'Scimitar', size=(400, 500) )
+		wx.Frame.__init__( self, None, -1, 'Scimitar', size=(400, 300) )
 		self.InitializeUI()
 		
 	def InitializeUI( self ):
@@ -118,6 +121,7 @@ class ScimitarMainForm( wx.Frame ):
 		if openFileDialog.ShowModal() == wx.ID_CANCEL:
 			return  # A file was not opened.
 		
+		self.log.WriteLogText("Opening run file '" + str( openFileDialog.GetPath() ) + "'.")
 		loadedRun = ScimitarCore.openRunFromFile( openFileDialog.GetPath() )
 		newRunEditor = ScimitarRunForm( self, loadedRun )
 		

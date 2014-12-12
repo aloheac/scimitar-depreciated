@@ -14,7 +14,7 @@
 import wx
 import wx.grid as wx_grid
 import ScimitarCore
-
+		
 class RunNotebook( wx.Notebook ):
     def __init__(self, RunForm, parent ):
         wx.Notebook.__init__(self, parent, style=wx.BK_DEFAULT, size=(500, 50) )
@@ -45,6 +45,7 @@ class ScimitarRunForm( wx.Frame ):
     def __init__(self, parent, run ):
         wx.Frame.__init__(self, parent, -1, 'Scimitar Run Editor', size=(600,500) )
         
+        self.MainLog = parent.log
         self.run = run
         self.speciesGrid = None  # Parameter grid will be initialized upon UI initialization.
         
@@ -99,7 +100,13 @@ class ScimitarRunForm( wx.Frame ):
         self.Show()
         
     def onReportCard(self, evt):
-        self.run.species.printGrid()
+    	self.MainLog.WriteLogHeader("\nReport Card")
+        try:
+        	self.run.species.checkGrid()
+        except ScimitarCore.ScimitarGridError as err:
+        	self.MainLog.WriteLogError( err.value )
+        	return
+        self.MainLog.WriteLogText( self.run.getReportCard() )
         
     def onSaveAsRun(self, evt):
         saveFileDialog = wx.FileDialog( self, "Save Scimitar Run", "", "", "Scimitar Run files (*.srn)|*.srn", wx.FD_SAVE|wx.FD_OVERWRITE_PROMPT )
@@ -107,6 +114,8 @@ class ScimitarRunForm( wx.Frame ):
             return  # File is not to be saved.
         
         ScimitarCore.writeRunToFile(self.run, saveFileDialog.GetPath())
+        self.MainLog.WriteLogText("Run file '" + str( saveFileDialog.GetPath() ) + "' saved.")
+        
     def onParameterGridChanged(self, evt):
         # Save parameter grid to the run.
         for i in range( 0, self.run.species.numRows ):

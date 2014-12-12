@@ -11,7 +11,7 @@
 # University of North Carolina at Chapel Hill
 ####################################################################
 
-DEFAULT_NUM_ROWS = 3
+DEFAULT_NUM_ROWS = 5
 DEFAULT_NUM_COLUMNS = 4
 DEFAULT_EMPTY_ELEMENT = '--'
 
@@ -63,6 +63,8 @@ Check if a range value is valid.
 """
 def _isValidRange( value ):
 	nums = value.split( ':' )
+	if len( nums ) != 3: 
+		return False
 	for i in range( 0, 2 ):
 		try:
 			float( nums[i] )
@@ -97,7 +99,7 @@ class ScimitarSpecies:
 				emptyRow.append( str( DEFAULT_EMPTY_ELEMENT ) )
 			for j in range( 0, DEFAULT_NUM_ROWS ):
 				self.parameterGrid.append( list( emptyRow ) )
-			self.parameterGrid = [['a', 'int', '5', '1'],['b','range','1:1:10','2'],['c','real','6,7,8,9','3']]
+			#self.parameterGrid = [['a', 'int', '5', '1'],['b','range','1:1:10','2'],['c','real','6,7,8,9','3']]
 		
 		"""
 		Add a blank row to the parameter grid of the species.

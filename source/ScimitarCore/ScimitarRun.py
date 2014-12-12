@@ -39,8 +39,10 @@ def _sortModuleList( moduleList ):
 		for j in range( len( moduleList ) - 1, i, -1 ):
 			if moduleList[ j ].priority < moduleList[ j - 1 ].priority:
 				moduleList[ j ], moduleList[ j-1 ] = moduleList[ j-1 ], moduleList[ j ]
-				
-# Just a struct containing a bunch of configuration settings.
+
+"""
+Struct that contains various basic configuration settings for the run.
+"""				
 class RunSettings:
 	def __init__( self ):
 			self.scriptFilename = str( DEFAULT_SCRIPT_FILENAME )
@@ -52,29 +54,39 @@ class RunSettings:
 			self.optionCompileSource = 1
 			self.optionBuildDirectoryStructure = 1
 			self.optionDisableInputRedirection = 0
-			
-# Stuct containing instantiations of all available modules so their settings can be mantained
-# and written to file. THese modules should be activated in order to include them in the
-# script.
+
+"""
+Struct containing instantiations of all available modules.
+"""
+# Available so settings of each module can be maintained and written to file. These 
+# modules should be activated in order to include them in the script.
 class AvailableModules:
 	def __init__(self, run):
 		self.CreateDirectoryStructure = ScimitarModules.CreateDirectoryStructure( run )
 		self.CompileSource = ScimitarModules.CompileSource( run )
 		self.HeaderModule = ScimitarModules.HeaderModule( run )
 		self.SingleMachineResourceManager = ScimitarModules.SingleMachineResourceManager( run )
-			
+
+"""
+Definition class for a Scimitar run. This completely specifies the information
+needed to construct an execution script.
+"""			
 class ScimitarRun:
 	def __init__( self, species ):
 		self.name = "DefaultRun"
 		self.species = species
 		self.runSettings = RunSettings()
 		self.availableModules = AvailableModules( self )
+		self.runNotes = ""
 		
-		# Scimitar modules.
+		# Active Scimitar modules.
 		self.activeResourceManager = "NO_RESOURCE_MANAGER"
 		self.activePreExecutionModules = []
 		self.activePostExecutionModules = []
 	
+	"""
+	Activate a Scimitar module.
+	"""
 	def activateModule( self, module ):
 		if module.moduleType == ScimitarModules.ModuleTypes.ResourceManager:
 			self.activeResourceManager = module
@@ -85,6 +97,9 @@ class ScimitarRun:
 		else:
 			raise ScimitarRunError( "Module '" + module.name + "' does not have a valid type." )
 		
+	"""
+	Deactivate a Scimitar module. The object will still remain in AvailableModules.
+	"""
 	def deactivateModule( self, module ):
 		if module.moduleType == ScimitarModules.ModuleTypes.ResourceManager:
 			# Note that here we assume that we want the resource manager removed no matter
@@ -106,8 +121,13 @@ class ScimitarRun:
 			raise ScimitarRunError( "Module '" + module.name + "' does not have a valid type." )
 		
 	def getReportCard( self ):
-		pass
+		reportCard = "All grid checks passed!\n"
+		reportCard += "Total number of runs: " + str( self.species.getRunCount() ) + "\n"
+		return reportCard
 		
+	"""
+	Generate the script for this run.
+	"""
 	def generateScript( self ):
 		# Start with an empty script.
 		script = ""
