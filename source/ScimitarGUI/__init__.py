@@ -1,1 +1,0 @@
-from ScimitarMainForm import *

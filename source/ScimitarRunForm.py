@@ -86,7 +86,8 @@ class ScimitarRunForm( wx.Frame ):
         toolbar.Realize()  
         
         # Add toolbar event bindings.
-        self.Bind( wx.EVT_TOOL, self.onReportCard, toolbar_reportCard )                             
+        self.Bind( wx.EVT_TOOL, self.onReportCard, toolbar_reportCard )  
+        self.Bind( wx.EVT_TOOL, self.onSaveAsRun, toolbar_saveAs )                           
         # ***** END OF TOOLBAR *****
         
         self.mainPanel = wx.Panel( self )
@@ -100,6 +101,12 @@ class ScimitarRunForm( wx.Frame ):
     def onReportCard(self, evt):
         self.run.species.printGrid()
         
+    def onSaveAsRun(self, evt):
+        saveFileDialog = wx.FileDialog( self, "Save Scimitar Run", "", "", "Scimitar Run files (*.srn)|*.srn", wx.FD_SAVE|wx.FD_OVERWRITE_PROMPT )
+        if saveFileDialog.ShowModal() == wx.ID_CANCEL:
+            return  # File is not to be saved.
+        
+        ScimitarCore.writeRunToFile(self.run, saveFileDialog.GetPath())
     def onParameterGridChanged(self, evt):
         # Save parameter grid to the run.
         for i in range( 0, self.run.species.numRows ):

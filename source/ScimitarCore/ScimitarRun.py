@@ -53,11 +53,22 @@ class RunSettings:
 			self.optionBuildDirectoryStructure = 1
 			self.optionDisableInputRedirection = 0
 			
+# Stuct containing instantiations of all available modules so their settings can be mantained
+# and written to file. THese modules should be activated in order to include them in the
+# script.
+class AvailableModules:
+	def __init__(self, run):
+		self.CreateDirectoryStructure = ScimitarModules.CreateDirectoryStructure( run )
+		self.CompileSource = ScimitarModules.CompileSource( run )
+		self.HeaderModule = ScimitarModules.HeaderModule( run )
+		self.SingleMachineResourceManager = ScimitarModules.SingleMachineResourceManager( run )
+			
 class ScimitarRun:
 	def __init__( self, species ):
 		self.name = "DefaultRun"
 		self.species = species
 		self.runSettings = RunSettings()
+		self.availableModules = AvailableModules( self )
 		
 		# Scimitar modules.
 		self.activeResourceManager = "NO_RESOURCE_MANAGER"

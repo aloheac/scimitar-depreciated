@@ -89,6 +89,7 @@ class ScimitarMainForm( wx.Frame ):
 		self.Bind( wx.EVT_MENU, self.onExit, menuFile_Quit )
 		
 		self.Bind( wx.EVT_TOOL, self.onNewRun, toolbar_newRun )
+		self.Bind( wx.EVT_TOOL, self.onOpenRun, toolbar_openRun )
 		self.Bind( wx.EVT_TOOL, self.onExit, toolbar_exit )
 		# ***** END OF EVENT BINDINGS *****
 		
@@ -111,6 +112,14 @@ class ScimitarMainForm( wx.Frame ):
 		
 	def onExit( self, evt ):
 		self.Close()
+		
+	def onOpenRun(self, evt):
+		openFileDialog = wx.FileDialog( self, "Open Scimitar Run", "", "", "Scimitar Run files (*.srn)|*.srn", wx.FD_OPEN|wx.FD_FILE_MUST_EXIST )
+		if openFileDialog.ShowModal() == wx.ID_CANCEL:
+			return  # A file was not opened.
+		
+		loadedRun = ScimitarCore.openRunFromFile( openFileDialog.GetPath() )
+		newRunEditor = ScimitarRunForm( self, loadedRun )
 		
 	def onNewRun(self, evt):
 		newRunEditor = ScimitarRunForm( self, ScimitarCore.ScimitarRun( ScimitarCore.ScimitarSpecies() ) )
