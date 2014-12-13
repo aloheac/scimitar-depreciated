@@ -14,6 +14,7 @@
 import wx
 import wx.grid as wx_grid
 import wx.propgrid as wx_propgrid
+from os.path import isfile
 import ScimitarCore
 
 class RunNotebook( wx.Notebook ):
@@ -90,12 +91,13 @@ class ParameterGrid( wx_grid.Grid ):
         wx_grid.Grid.__init__( self, parent, size=(100, 100) )
         
 class ScimitarRunForm( wx.Frame ):
-    def __init__(self, parent, run ):
+    def __init__(self, parent, run, runPath ):
         wx.Frame.__init__(self, parent, -1, 'Scimitar Run Editor', size=(600,500) )
         
         self.MainLog = parent.log
         self.run = run
         self.speciesGrid = None  # Parameter grid will be initialized upon UI initialization.
+        self.runPath = runPath # Should be initialized if a run was opened from file.
         
         # Initialize modules.
         self.moduleHeaderModule = ScimitarCore.ScimitarModules.HeaderModule( run )
@@ -138,7 +140,8 @@ class ScimitarRunForm( wx.Frame ):
         # Add toolbar event bindings.
         self.Bind( wx.EVT_TOOL, self.onReportCard, toolbar_reportCard )  
         self.Bind( wx.EVT_TOOL, self.onCreateScript, toolbar_createScript )
-        self.Bind( wx.EVT_TOOL, self.onSaveAsRun, toolbar_saveAs )                           
+        self.Bind( wx.EVT_TOOL, self.onSaveAsRun, toolbar_saveAs )
+        self.Bind( wx.EVT_TOOL, self.onSaveRun, toolbar_save )                          
         # ***** END OF TOOLBAR *****
         
         self.mainPanel = wx.Panel( self )
@@ -181,8 +184,15 @@ class ScimitarRunForm( wx.Frame ):
             return  # File is not to be saved.
         
         ScimitarCore.writeRunToFile(self.run, saveFileDialog.GetPath())
-        self.MainLog.WriteLogText("Run file '" + str( saveFileDialog.GetPath() ) + "' saved.")
-        
+        self.MainLog.WriteLogText("Run file '" + str( saveFileDialog.GetPath() ) + "' saved as.")
+    
+    def onSaveRun(self, evt):
+        if isfile( self.runPath ):
+            ScimitarCore.writeRunToFile( self.run, self.runPath )
+            self.MainLog.WriteLogText("Run file '" + str( self.runPath ) + "' saved.")
+        else:
+            self.onSaveAsRun(self, evt)
+            
     def onParameterGridChanged(self, evt):
         # Save parameter grid to the run.
         for i in range( 0, self.run.species.numRows ):

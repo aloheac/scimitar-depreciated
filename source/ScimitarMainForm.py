@@ -148,8 +148,8 @@ class ScimitarMainForm( wx.Frame ):
 		
 		self.log.WriteLogText("Opening run file '" + str( openFileDialog.GetPath() ) + "'.")
 		loadedRun = ScimitarCore.openRunFromFile( openFileDialog.GetPath() )
-		newRunEditor = ScimitarRunForm( self, loadedRun )
+		newRunEditor = ScimitarRunForm( self, loadedRun, openFileDialog.GetPath() )
 		
 	def onNewRun(self, evt):
-		newRunEditor = ScimitarRunForm( self, ScimitarCore.ScimitarRun( ScimitarCore.ScimitarSpecies() ) )
+		newRunEditor = ScimitarRunForm( self, ScimitarCore.ScimitarRun( ScimitarCore.ScimitarSpecies() ), None )
 		self.log.WriteLogText("Creating a new run.")
