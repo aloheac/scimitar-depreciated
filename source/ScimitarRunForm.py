@@ -112,7 +112,9 @@ class ScimitarRunForm( wx.Frame ):
         menuFile_SaveAs = menuFile.Append( wx.ID_ANY, "&Save Run As...")
         menuFile_UpdateModules = menuFile.Append( wx.ID_ANY, "Update Modules")
         menuBar.Append( menuFile, "&File" )
-        
+        self.Bind( wx.EVT_MENU, self.onSaveRun, menuFile_Save )
+        self.Bind( wx.EVT_MENU, self.onSaveAsRun, menuFile_SaveAs )
+        self.Bind( wx.EVT_MENU, self.onUpdateModules, menuFile_UpdateModules )
         self.SetMenuBar( menuBar )
         
         self.InitializeUI( run.species.numRows, run.species.numColumns )
@@ -239,3 +241,16 @@ class ScimitarRunForm( wx.Frame ):
             self.run.availableModules.SingleMachineResourceManager.numSimRuns = evt.GetProperty().GetValue()
         elif evt.GetProperty().GetName() == "procCheckWaitTime":
             self.run.availableModules.SingleMachineResourceManager.procCheckWaitTime = evt.GetProperty().GetValue()
+            
+    def onUpdateModules(self, evt):
+        if not self.runPath == None:
+            #self.run.availableModules.HeaderModule = ScimitarCore.ScimitarModules.HeaderModule( self.run )
+            #self.run.availableModules.SingleMachineResourceManager = ScimitarCore.ScimitarModules.SingleMachineResourceManager( self.run )
+            #self.run.availableModules.CompileSource = ScimitarCore.ScimitarModules.CompileSource( self.run )
+            #self.run.availableModules.CreateDirectoryStructure = ScimitarCore.ScimitarModules.CreateDirectoryStructure( self.run )
+            self.run = ScimitarCore.ScimitarRun( self.run.species )
+            ScimitarCore.writeRunToFile( self.run, self.runPath )
+            self.MainLog.WriteLogText("Scimitar modules have been updated to the latest versions for this run file and saved. Please re-open the run file.")
+            self.Close()
+        
+        
