@@ -51,9 +51,9 @@ class RunSettings:
 			self.inputFilename = str( DEFAULT_INPUT_FILENAME )
 			self.outputFilename = str( DEFAULT_OUTPUT_FILENAME )
 			self.sourcePath = str( DEFAULT_SOURCE_PATH )
-			self.optionCompileSource = 1
-			self.optionBuildDirectoryStructure = 1
-			self.optionDisableInputRedirection = 0
+			self.optionCompileSource = True
+			self.optionBuildDirectoryStructure = True
+			self.optionDisableInputRedirection = False
 
 """
 Struct containing instantiations of all available modules.

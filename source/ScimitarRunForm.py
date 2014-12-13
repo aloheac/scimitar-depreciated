@@ -13,8 +13,9 @@
 
 import wx
 import wx.grid as wx_grid
+import wx.propgrid as wx_propgrid
 import ScimitarCore
-		
+
 class RunNotebook( wx.Notebook ):
     def __init__(self, RunForm, parent ):
         wx.Notebook.__init__(self, parent, style=wx.BK_DEFAULT, size=(500, 50) )
@@ -23,6 +24,11 @@ class RunNotebook( wx.Notebook ):
         settingsPanel = wx.Panel(self, -1)
         modulesPanel = wx.Panel(self, -1)
         
+        self.AddPage(parameterGridPanel, "Parameter Grid")
+        self.AddPage(settingsPanel, "Run Configuration")
+        self.AddPage(modulesPanel, "Execution Settings")
+
+        # ***** PARAMETER GRID TAB *****
         parameterGridSizer = wx.BoxSizer( wx.HORIZONTAL )
         RunForm.speciesGrid = ParameterGrid( parameterGridPanel )
         parameterGridSizer.Add( RunForm.speciesGrid, 1, wx.EXPAND )
@@ -35,10 +41,25 @@ class RunNotebook( wx.Notebook ):
         RunForm.speciesGrid.SetColLabelValue( 3, "Directory Order")
         RunForm.speciesGrid.SetColSize( 3, 100 )
         
-        self.AddPage(parameterGridPanel, "Parameter Grid")
-        self.AddPage(settingsPanel, "Run Configuration")
-        self.AddPage(modulesPanel, "Execution Settings")
-        
+        # ***** RUN SETTINGS TAB *****
+        runSettingsSizer = wx.BoxSizer( wx.VERTICAL )
+        RunForm.runPropertiesGrid = wx_propgrid.PropertyGrid( settingsPanel, size=(300, 300) )
+        #runSettingsSizer.Add( wx.StaticText( settingsPanel, label="This tab describes basic run configuration settings for the Scimitar script. A resource manager must also be selected and configured on the following tab." ), 1 )
+        runSettingsSizer.Add( RunForm.runPropertiesGrid, 2, wx.EXPAND )
+        settingsPanel.SetSizerAndFit( runSettingsSizer )
+        RunForm.runPropertiesGrid.Append( wx_propgrid.PropertyCategory( "Basic Script Properties" ) )
+        RunForm.runPropertiesGrid.Append( wx_propgrid.StringProperty( "Script filename", "scriptFilename", RunForm.run.runSettings.scriptFilename ) )
+        RunForm.runPropertiesGrid.Append( wx_propgrid.DirProperty( "Script output location", "scriptLocation", RunForm.run.runSettings.scriptLocation ) )
+        RunForm.runPropertiesGrid.Append( wx_propgrid.PropertyCategory( "Executable Properties" ) )
+        RunForm.runPropertiesGrid.Append( wx_propgrid.FileProperty( "Executable filename", "executableFilename", RunForm.run.runSettings.executableFilename ) )
+        RunForm.runPropertiesGrid.Append( wx_propgrid.FileProperty( "Output filename", "outputFilename", RunForm.run.runSettings.outputFilename ) )
+        RunForm.runPropertiesGrid.Append( wx_propgrid.FileProperty( "Input filename", "inputFilename", RunForm.run.runSettings.inputFilename ) )
+        RunForm.runPropertiesGrid.Append( wx_propgrid.DirProperty( "Source path", "sourcePath", RunForm.run.runSettings.sourcePath ) )
+        RunForm.runPropertiesGrid.Append( wx_propgrid.PropertyCategory( "Basic Script Tasks" ) )
+        RunForm.runPropertiesGrid.Append( wx_propgrid.BoolProperty("Compile executable from source", "optionCompileSource", RunForm.run.runSettings.optionCompileSource ) )
+        RunForm.runPropertiesGrid.Append( wx_propgrid.BoolProperty("Build directory structure", "optionBuildDirectoryStructure", RunForm.run.runSettings.optionBuildDirectoryStructure ) )
+        RunForm.runPropertiesGrid.Append( wx_propgrid.BoolProperty("Disable input redirection", "optionDisableInputRedirection", RunForm.run.runSettings.optionDisableInputRedirection ) 
+								)
 class ParameterGrid( wx_grid.Grid ):
     def __init__(self, parent ):
         wx_grid.Grid.__init__( self, parent, size=(100, 100) )
