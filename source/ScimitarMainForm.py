@@ -100,10 +100,10 @@ class ScimitarMainForm( wx.Frame ):
 		toolbarIconSize = ( 24, 24 )
 		
 		# Get icon images.
-		newRun_bmp = wx.ArtProvider.GetBitmap(wx.ART_NEW, wx.ART_TOOLBAR, toolbarIconSize)
-		openRun_bmp = wx.ArtProvider.GetBitmap(wx.ART_FILE_OPEN, wx.ART_TOOLBAR, toolbarIconSize)
-		close_bmp = wx.ArtProvider.GetBitmap(wx.ART_QUIT, wx.ART_OTHER, toolbarIconSize)
-		help_bmp = wx.ArtProvider.GetBitmap(wx.ART_HELP, wx.ART_TOOLBAR, toolbarIconSize)
+		newRun_bmp = wx.Bitmap('./resources/new.png') #wx.ArtProvider.GetBitmap(wx.ART_NEW, wx.ART_TOOLBAR, toolbarIconSize)
+		openRun_bmp = wx.Bitmap('./resources/open.png') #wx.ArtProvider.GetBitmap(wx.ART_FILE_OPEN, wx.ART_TOOLBAR, toolbarIconSize)
+		close_bmp = wx.Bitmap('./resources/exit.png') #wx.ArtProvider.GetBitmap(wx.ART_QUIT, wx.ART_OTHER, toolbarIconSize)
+		help_bmp = wx.Bitmap('./resources/help.png') #wx.ArtProvider.GetBitmap(wx.ART_HELP, wx.ART_TOOLBAR, toolbarIconSize)
 		
 		toolbar_newRun = toolbar.AddLabelTool( wx.ID_ANY, "New Run", newRun_bmp, shortHelp = "Create a new run file." )
 		toolbar_openRun = toolbar.AddLabelTool( wx.ID_ANY, "Open Run", openRun_bmp, shortHelp = "Open an existing run file." )
