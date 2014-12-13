@@ -83,8 +83,8 @@ class ScimitarMainForm( wx.Frame ):
 		
 		# Setup menus for the frame.
 		menuFile = wx.Menu()
-		menuFile_NewRun = menuFile.Append( MENU_ID_NEW_RUN, "&Create a new run" )
-		menuFile_OpenRun = menuFile.Append( MENU_ID_OPEN_RUN, "&Open an existing run" )
+		menuFile_NewRun = menuFile.Append( MENU_ID_NEW_RUN, "&New Run" )
+		menuFile_OpenRun = menuFile.Append( MENU_ID_OPEN_RUN, "&Open Run..." )
 		menuFile_Quit = menuFile.Append( wx.ID_EXIT, "&Quit" )
 		menuBar.Append( menuFile, "&File" )
 		
@@ -93,6 +93,9 @@ class ScimitarMainForm( wx.Frame ):
 		menuBar.Append( menuHelp, "&Help" )
 		
 		self.SetMenuBar( menuBar )
+		
+		self.Bind( wx.EVT_MENU, self.onNewRun, menuFile_NewRun )
+		self.Bind( wx.EVT_MENU, self.onOpenRun, menuFile_OpenRun )
 		# ***** END OF MENU BAR *****
 		
 		# ***** TOOLBAR *****

@@ -105,6 +105,16 @@ class ScimitarRunForm( wx.Frame ):
         self.moduleSingleMachineResourceManager = ScimitarCore.ScimitarModules.SingleMachineResourceManager( run )
         self.moduleCompileSource = ScimitarCore.ScimitarModules.CompileSource( run )
         
+        # Generate menu bar.
+        menuBar = wx.MenuBar()
+        menuFile = wx.Menu()
+        menuFile_Save = menuFile.Append( wx.ID_ANY, "&Save Run" )
+        menuFile_SaveAs = menuFile.Append( wx.ID_ANY, "&Save Run As...")
+        menuFile_UpdateModules = menuFile.Append( wx.ID_ANY, "Update Modules")
+        menuBar.Append( menuFile, "&File" )
+        
+        self.SetMenuBar( menuBar )
+        
         self.InitializeUI( run.species.numRows, run.species.numColumns )
         
         # Load parameter grid from the run.
