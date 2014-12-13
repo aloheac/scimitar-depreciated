@@ -22,11 +22,11 @@ class RunNotebook( wx.Notebook ):
         
         parameterGridPanel = wx.Panel(self, -1)
         settingsPanel = wx.Panel(self, -1)
-        modulesPanel = wx.Panel(self, -1)
+        executionPanel = wx.Panel(self, -1)
         
         self.AddPage(parameterGridPanel, "Parameter Grid")
         self.AddPage(settingsPanel, "Run Configuration")
-        self.AddPage(modulesPanel, "Execution Settings")
+        self.AddPage(executionPanel, "Execution Settings")
 
         # ***** PARAMETER GRID TAB *****
         parameterGridSizer = wx.BoxSizer( wx.HORIZONTAL )
@@ -58,8 +58,32 @@ class RunNotebook( wx.Notebook ):
         RunForm.runPropertiesGrid.Append( wx_propgrid.PropertyCategory( "Basic Script Tasks" ) )
         RunForm.runPropertiesGrid.Append( wx_propgrid.BoolProperty("Compile executable from source", "optionCompileSource", RunForm.run.runSettings.optionCompileSource ) )
         RunForm.runPropertiesGrid.Append( wx_propgrid.BoolProperty("Build directory structure", "optionBuildDirectoryStructure", RunForm.run.runSettings.optionBuildDirectoryStructure ) )
-        RunForm.runPropertiesGrid.Append( wx_propgrid.BoolProperty("Disable input redirection", "optionDisableInputRedirection", RunForm.run.runSettings.optionDisableInputRedirection ) 
-								)
+        RunForm.runPropertiesGrid.Append( wx_propgrid.BoolProperty("Disable input redirection", "optionDisableInputRedirection", RunForm.run.runSettings.optionDisableInputRedirection ) )
+        
+        # ***** EXECUTION PANEL *****
+        executionSettingsSizer = wx.BoxSizer( wx.VERTICAL )
+        RunForm.singleMachinePropertyGrid = wx_propgrid.PropertyGrid( executionPanel )
+        RunForm.executionChoiceBook = wx.Choicebook( executionPanel, id=wx.ID_ANY )
+        executionSettingsSizer.Add( RunForm.executionChoiceBook, 1, wx.EXPAND )
+        executionPanel.SetSizerAndFit( executionSettingsSizer )
+        
+        # SINGLE MACHINE SETTINGS
+        panelSingleMachine = wx.Panel( RunForm.executionChoiceBook )
+        panelPBS = wx.Panel( RunForm.executionChoiceBook )
+        panelSingleMachineMPI = wx.Panel( RunForm.executionChoiceBook )
+        panelPBSMPI = wx.Panel( RunForm.executionChoiceBook )
+        
+        RunForm. propertyGridSingleMachine = wx_propgrid.PropertyGrid( panelSingleMachine )
+        sizerGridSingleMachine = wx.BoxSizer( wx.VERTICAL )
+        sizerGridSingleMachine.Add( RunForm.propertyGridSingleMachine, 1, wx.EXPAND )
+        panelSingleMachine.SetSizerAndFit( sizerGridSingleMachine )
+        RunForm.propertyGridSingleMachine.Append( wx_propgrid.PropertyCategory( "Resources" ) )
+        RunForm.propertyGridSingleMachine.Append( wx_propgrid.IntProperty( "Number of simultaneous runs", "numRuns", 62 ))
+        
+        RunForm.executionChoiceBook.AddPage( panelSingleMachine, "Single Machine or Interactive Job")
+        RunForm.executionChoiceBook.AddPage( panelPBS, "PBS Scheduler on Cluster")
+        RunForm.executionChoiceBook.AddPage( panelSingleMachineMPI, "Single Machine or Interactive Job using MPI")
+        RunForm.executionChoiceBook.AddPage( panelPBSMPI, "PBS Scheduler on Cluster using MPI")
 class ParameterGrid( wx_grid.Grid ):
     def __init__(self, parent ):
         wx_grid.Grid.__init__( self, parent, size=(100, 100) )
