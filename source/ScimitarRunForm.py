@@ -87,7 +87,7 @@ class ScimitarRunForm( wx.Frame ):
         
         # Add remaining event bindings.
         self.Bind( wx_grid.EVT_GRID_CELL_CHANGED, self.onParameterGridChanged, self.speciesGrid )
-        
+        self.Bind( wx_propgrid.EVT_PG_CHANGED, self.onUpdateRunParameterGrid, self.runPropertiesGrid )
     def InitializeUI(self, gridRows, gridColumns ):
         
         # ***** TOOLBAR *****
@@ -162,3 +162,23 @@ class ScimitarRunForm( wx.Frame ):
         for i in range( 0, self.run.species.numRows ):
             for j in range( 0, self.run.species.numColumns ):
                 self.run.species.setElement( i, j, str( self.speciesGrid.GetCellValue( i, j ) ) )
+                
+    def onUpdateRunParameterGrid(self, evt):
+        if evt.GetProperty().GetName() == "scriptFilename":
+            self.run.runSettings.scriptFilename = evt.GetProperty().GetValue()
+        elif evt.GetProperty().GetName() == "scriptLocation":
+            self.run.runSettings.scriptLocation = evt.GetProperty().GetValue()
+        elif evt.GetProperty().GetName() == "executableFilename":
+            self.run.runSettings.executableFilename = evt.GetProperty().GetValue()
+        elif evt.GetProperty().GetName() == "inputFilename":
+            self.run.runSettings.inputFilename = evt.GetProperty().GetValue()
+        elif evt.GetProperty().GetName() == "outputFilename":
+            self.run.runSettings.outputFilename = evt.GetProperty().GetValue()
+        elif evt.GetProperty().GetName() == "sourcePath":
+            self.run.runSettings.sourcePath = evt.GetProperty().GetValue()
+        elif evt.GetProperty().GetName() == "optionCompileSource":
+            self.run.runSettings.optionCompileSource = evt.GetProperty().GetValue()
+        elif evt.GetProperty().GetName() == "optionBuildDirectorySTructure":
+            self.run.runSettings.optionBuildDirectoryStructure = evt.GetProperty().GetValue()
+        elif evt.GetProperty().GetName() == "optionDisableInputRedirection":
+            self.run.runSettings.optionDisableInputRedirection = evt.GetProperty().GetValue()
