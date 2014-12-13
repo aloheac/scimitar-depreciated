@@ -86,6 +86,10 @@ class ScimitarRun:
 		
 		# By default, set the active resource manager to be SingleMachine.
 		self.activeResourceManager = self.availableModules.SingleMachineResourceManager
+		
+		# By default, activate all of the very important modules.
+		self.activateModule( self.availableModules.HeaderModule )
+		self.activateModule( self.availableModules.CreateDirectoryStructure )
 	
 	"""
 	Activate a Scimitar module.
@@ -134,7 +138,7 @@ class ScimitarRun:
 	def generateScript( self ):
 		# Start with an empty script.
 		script = ""
-		
+
 		# Sort the execution modules by priority.
 		_sortModuleList( self.activePreExecutionModules )
 		_sortModuleList( self.activePostExecutionModules )
