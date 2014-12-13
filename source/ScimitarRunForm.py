@@ -285,4 +285,3 @@ class ScimitarRunForm( wx.Frame ):
     def onDeleteRow( self, evtDeleteRow, rowNumber ):
         self.run.species.deleteRow( rowNumber )
         self.speciesGrid.DeleteRows( rowNumber )
-        self.run.species.printGrid()
