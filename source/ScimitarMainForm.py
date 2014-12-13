@@ -94,8 +94,6 @@ class ScimitarMainForm( wx.Frame ):
 		
 		self.SetMenuBar( menuBar )
 		
-		self.Bind( wx.EVT_MENU, self.onNewRun, menuFile_NewRun )
-		self.Bind( wx.EVT_MENU, self.onOpenRun, menuFile_OpenRun )
 		# ***** END OF MENU BAR *****
 		
 		# ***** TOOLBAR *****
@@ -118,7 +116,9 @@ class ScimitarMainForm( wx.Frame ):
 		
 		# ***** EVENT BINDINGS *****
 		self.Bind( wx.EVT_MENU, self.onExit, menuFile_Quit )
-		
+		self.Bind( wx.EVT_MENU, self.onNewRun, menuFile_NewRun )
+		self.Bind( wx.EVT_MENU, self.onOpenRun, menuFile_OpenRun )
+		self.Bind( wx.EVT_MENU, self.onAboutBox, menuHelp_About )
 		self.Bind( wx.EVT_TOOL, self.onNewRun, toolbar_newRun )
 		self.Bind( wx.EVT_TOOL, self.onOpenRun, toolbar_openRun )
 		self.Bind( wx.EVT_TOOL, self.onExit, toolbar_exit )
@@ -134,6 +134,10 @@ class ScimitarMainForm( wx.Frame ):
 		self.mainBoxSizer.Add( self.log, 1, wx.ALIGN_CENTER|wx.EXPAND )
 		self.mainPanel.SetSizerAndFit( self.mainBoxSizer )
 		# ***** END OF MAIN PANEL *****
+		
+		# ***** ABOUT DIALOG BOX *****
+		
+		# ***** END ABOUT DIALOG BOX *****
 		
 		self.log.WriteLogHeader("Welcome to Scimitar!")
 		self.log.WriteLogText("Version 6.0 alpha (Dec 2014)\n")
@@ -156,3 +160,27 @@ class ScimitarMainForm( wx.Frame ):
 	def onNewRun(self, evt):
 		newRunEditor = ScimitarRunForm( self, ScimitarCore.ScimitarRun( ScimitarCore.ScimitarSpecies() ), None )
 		self.log.WriteLogText("Creating a new run.")
+		
+	def onAboutBox(self, evt):
+		description = """A visual driver for parameter-space exploration."""
+		copy = """(C) 2013 - 2014 Joaquin E. Drut, et al.
+Department of Physics and Astronomy
+University of North Carolina at Chapel Hill
+
+Research supported by the U.S. National Science
+Foundation Grant No. PHY1306520."""
+		
+		info = wx.AboutDialogInfo()
+		info.SetIcon( wx.Icon( './resources/scimitar.png', wx.BITMAP_TYPE_PNG ) )
+		info.SetName('Scimitar')
+		info.SetVersion('6.0 alpha (Dec 2014)')
+		info.SetDescription( description )
+		info.SetCopyright( copy )
+		info.SetWebSite('http://user.physics.unc.edu/~drut/public_html_UNC/scimitar.html')
+		info.AddDeveloper('Joaquin E. Drut')
+		info.AddDeveloper('Andrew C. Loheac')
+		info.AddDeveloper('Dhruv Mittal')
+		info.AddDeveloper('Michael Hoffman')
+		
+		wx.AboutBox( info )
+		
