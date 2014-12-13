@@ -66,7 +66,8 @@ class CreateDirectoryStructure( PreExecutionModule ):
 		contribution += "	f_inputFile = open( initWorkingDir + '/exec/' + run + '/" + self.run.runSettings.inputFilename + "', 'w' )\n"
 		contribution += "	f_inputFile.write( _createInputFileForRun( run, parameterList, valueList ) )\n"
 		contribution += "	f_inputFile.close()\n"
-		contribution += "	proc = Popen( 'cp ' + initWorkingDir + '/' + " + self.run.runSettings.executableFilename + ".', shell=True )\n"
+		contribution += "	proc = Popen( 'cp ' + initWorkingDir + '/" + self.run.runSettings.executableFilename + " .', shell=True )\n"
 		contribution += "	proc.wait()\n"
+		contribution += "os.chdir( initWorkingDir )"
 		contribution += "# ***** End of PreExecution: Create Directory Structure *****\n"
 		return contribution

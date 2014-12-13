@@ -18,8 +18,9 @@ class CompileSource( PreExecutionModule ):
 		PreExecutionModule.__init__( self, "Compile Source", 10, run )
 		
 	def getScriptContribution( self ):
+		contribution = ""
 		if self.run.runSettings.optionCompileSource:
-			contribution  = "# ***** Pre Execution: Compile Source *****\n"
+			contribution += "# ***** Pre Execution: Compile Source *****\n"
 			contribution += "from subprocess import Popen\n"
 			contribution += "import os\n"
 			contribution += "print '>> Compiling executable from source...'\n"

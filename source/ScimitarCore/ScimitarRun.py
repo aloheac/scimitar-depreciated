@@ -89,6 +89,7 @@ class ScimitarRun:
 		
 		# By default, activate all of the very important modules.
 		self.activateModule( self.availableModules.HeaderModule )
+		self.activateModule( self.availableModules.CompileSource )
 		self.activateModule( self.availableModules.CreateDirectoryStructure )
 	
 	"""
