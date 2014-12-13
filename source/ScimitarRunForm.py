@@ -184,14 +184,19 @@ class ScimitarRunForm( wx.Frame ):
             return  # File is not to be saved.
         
         ScimitarCore.writeRunToFile(self.run, saveFileDialog.GetPath())
+        self.runPath = saveFileDialog.GetPath()
         self.MainLog.WriteLogText("Run file '" + str( saveFileDialog.GetPath() ) + "' saved as.")
     
     def onSaveRun(self, evt):
+        if self.runPath == None:
+            self.onSaveAsRun( evt )
+            return
+        
         if isfile( self.runPath ):
             ScimitarCore.writeRunToFile( self.run, self.runPath )
             self.MainLog.WriteLogText("Run file '" + str( self.runPath ) + "' saved.")
         else:
-            self.onSaveAsRun(self, evt)
+            self.onSaveAsRun( evt )
             
     def onParameterGridChanged(self, evt):
         # Save parameter grid to the run.
