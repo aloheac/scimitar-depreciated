@@ -172,7 +172,7 @@ class ScimitarSpecies:
 					raise ScimitarGridError( "Variable name in row " + str( i ) + " cannot contain backslashes." )
 					
 			# Check that all data types are valid types.
-			validDataTypes = [ "int", "real", "range", "file", "function" ]
+			validDataTypes = [ "int", "real", "range", "string", "file", "function" ]
 			for i in range( 0, self.numRows ):
 				element = self.getElement( i, 1 )
 				if element not in validDataTypes:

@@ -142,11 +142,9 @@ class ScimitarRunForm( wx.Frame ):
         createScript_bmp = wx.Bitmap('./resources/createScript.png') #wx.ArtProvider.GetBitmap(wx.ART_EXECUTABLE_FILE, wx.ART_TOOLBAR, toolbarIconSize)
         save_bmp = wx.Bitmap('./resources/save.png')#wx.ArtProvider.GetBitmap(wx.ART_FILE_SAVE, wx.ART_OTHER, toolbarIconSize)
         saveAs_bmp = wx.Bitmap('./resources/saveAs.png')#wx.ArtProvider.GetBitmap(wx.ART_COPY, wx.ART_OTHER, toolbarIconSize)
-        import_bmp = wx.Bitmap('./resources/import.png')
                                             
         toolbar_save = toolbar.AddLabelTool( wx.ID_ANY, "Save", save_bmp, shortHelp="Save the run to file." )
         toolbar_saveAs = toolbar.AddLabelTool( wx.ID_ANY, "Save As", saveAs_bmp, shortHelp="Save the run under a different filename." )
-        toolbar_import = toolbar.AddLabelTool( wx.ID_ANY, "Import", import_bmp, shortHelp="Import a set of parameters and values from a text file.")
         toolbar_reportCard = toolbar.AddLabelTool( wx.ID_ANY, "Report Card", reportCard_bmp, shortHelp="Check the run configuration and parameter grid for errors." )
         toolbar_createScript = toolbar.AddLabelTool( wx.ID_ANY, "Create Script", createScript_bmp, shortHelp="Generate the Python script which will execute this run on any machine." )
         
@@ -157,7 +155,7 @@ class ScimitarRunForm( wx.Frame ):
         self.Bind( wx.EVT_TOOL, self.onCreateScript, toolbar_createScript )
         self.Bind( wx.EVT_TOOL, self.onSaveAsRun, toolbar_saveAs )
         self.Bind( wx.EVT_TOOL, self.onSaveRun, toolbar_save )
-        self.Bind( wx.EVT_TOOL, self.onImport, toolbar_import )                    
+                           
         # ***** END OF TOOLBAR *****
         
         self.mainPanel = wx.Panel( self )
@@ -256,14 +254,6 @@ class ScimitarRunForm( wx.Frame ):
             ScimitarCore.writeRunToFile( self.run, self.runPath )
             self.MainLog.WriteLogText("Scimitar modules have been updated to the latest versions for this run file and saved. Please re-open the run file.")
             self.Close()
-    
-    def onImport(self, evt):
-        openFileDialog = wx.FileDialog( self, "Import File", "", "", "All files (*.*)|*.*", wx.FD_OPEN|wx.FD_FILE_MUST_EXIST )
-        if openFileDialog.ShowModal() == wx.ID_CANCEL:
-            return  # A file was not opened.
-        
-        f_import = open( openFileDialog.GetPath(), 'r' )
-        f_import.close()
         
     def onShowGridContextMenu(self, evt):
         self.contextMenu = wx.Menu()

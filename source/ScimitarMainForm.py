@@ -105,9 +105,11 @@ class ScimitarMainForm( wx.Frame ):
 		openRun_bmp = wx.Bitmap('./resources/open.png') #wx.ArtProvider.GetBitmap(wx.ART_FILE_OPEN, wx.ART_TOOLBAR, toolbarIconSize)
 		close_bmp = wx.Bitmap('./resources/exit.png') #wx.ArtProvider.GetBitmap(wx.ART_QUIT, wx.ART_OTHER, toolbarIconSize)
 		help_bmp = wx.Bitmap('./resources/help.png') #wx.ArtProvider.GetBitmap(wx.ART_HELP, wx.ART_TOOLBAR, toolbarIconSize)
-		
+		import_bmp = wx.Bitmap('./resources/import.png')
+
 		toolbar_newRun = toolbar.AddLabelTool( wx.ID_ANY, "New Run", newRun_bmp, shortHelp = "Create a new run file." )
 		toolbar_openRun = toolbar.AddLabelTool( wx.ID_ANY, "Open Run", openRun_bmp, shortHelp = "Open an existing run file." )
+		toolbar_import = toolbar.AddLabelTool( wx.ID_ANY, "Import", import_bmp, shortHelp="Import a set of parameters and values from a text file.")
 		toolbar_help = toolbar.AddLabelTool( 10, "Help", help_bmp, shortHelp = "Open the documentation for Scimitar." )
 		toolbar_exit = toolbar.AddLabelTool( wx.ID_ANY, "Quit", close_bmp, shortHelp = "Quit Scimitar." )
 		
@@ -122,6 +124,7 @@ class ScimitarMainForm( wx.Frame ):
 		self.Bind( wx.EVT_TOOL, self.onNewRun, toolbar_newRun )
 		self.Bind( wx.EVT_TOOL, self.onOpenRun, toolbar_openRun )
 		self.Bind( wx.EVT_TOOL, self.onExit, toolbar_exit )
+		self.Bind( wx.EVT_TOOL, self.onImport, toolbar_import ) 
 		# ***** END OF EVENT BINDINGS *****
 		
 		# ***** MAIN PANEL *****
@@ -168,7 +171,8 @@ Department of Physics and Astronomy
 University of North Carolina at Chapel Hill
 
 Research supported by the U.S. National Science
-Foundation Grant No. PHY1306520."""
+Foundation under Grant No. PHY1306520 and Graduate
+Research Fellowship Program under Grant No. DGE1144081."""
 		
 		info = wx.AboutDialogInfo()
 		info.SetIcon( wx.Icon( './resources/scimitar.png', wx.BITMAP_TYPE_PNG ) )
@@ -183,4 +187,31 @@ Foundation Grant No. PHY1306520."""
 		info.AddDeveloper('Michael Hoffman')
 		
 		wx.AboutBox( info )
+		
+	def onImport(self, evt):
+		openFileDialog = wx.FileDialog( self, "Import File", "", "", "All files (*.*)|*.*", wx.FD_OPEN|wx.FD_FILE_MUST_EXIST )
+		if openFileDialog.ShowModal() == wx.ID_CANCEL:
+			return  # A file was not opened.
+		
+		f_import = open( openFileDialog.GetPath(), 'r' )
+		value = []
+		parameter = []
+		for line in f_import:
+			value.append( line.split('#')[0].strip() )
+			parameter.append(line.split('#')[1].strip())
+		f_import.close()
+		
+		newSpecies = ScimitarCore.ScimitarSpecies()
+		parameterGrid = []
+		try:
+			for i in range( 0, len( parameter ) ):
+				parameterGrid.append([parameter[i],'--',value[i],'--'])
+		except:
+			self.log.WriteLogError("The given input file is not in an acceptable format.")
+			
+		newSpecies.parameterGrid = parameterGrid
+		newSpecies.numRows = len( parameter )
+		print parameterGrid
+		newRunEditor = ScimitarRunForm( self, ScimitarCore.ScimitarRun( newSpecies ), None )
+		self.log.WriteLogText("Creating a new run from imported file.")
 		
