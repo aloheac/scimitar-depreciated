@@ -83,6 +83,9 @@ class ScimitarRun:
 		self.activeResourceManager = "NO_RESOURCE_MANAGER"
 		self.activePreExecutionModules = []
 		self.activePostExecutionModules = []
+		
+		# By default, set the active resource manager to be SingleMachine.
+		self.activeResourceManager = self.availableModules.SingleMachineResourceManager
 	
 	"""
 	Activate a Scimitar module.

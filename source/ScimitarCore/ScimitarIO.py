@@ -25,3 +25,8 @@ def openRunFromFile( filename ):
     return pickle.load( f )
     f.close()
     
+def writeScriptToFile( script, filename ):
+    f = open( filename, 'w' )
+    f.write( script )
+    f.close()
+    

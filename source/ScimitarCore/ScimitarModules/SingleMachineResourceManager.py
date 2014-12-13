@@ -16,7 +16,7 @@ from ResourceManagerModule import ResourceManagerModule
 class SingleMachineResourceManager( ResourceManagerModule ):
 	def __init__( self, run ):
 		ResourceManagerModule.__init__( self, "Single Machine", run )
-		self.optionSimRuns = 62
+		self.numSimRuns = 62
 		self.procCheckWaitTime = 5
 		
 	def getScriptContribution( self ):
@@ -44,7 +44,7 @@ class SingleMachineResourceManager( ResourceManagerModule ):
 		contribution += "	for process in runningJobs:\n"
 		contribution += "		if process[0].poll() != None:\n"
 		contribution += "			runningJobs.remove( process )\n"
-		contribution += "	while len( runningJobs ) > " + str( self.optionSimRuns ) + ":\n"
+		contribution += "	while len( runningJobs ) > " + str( self.numSimRuns ) + ":\n"
 		contribution += "		runningJobs.append( proc )\n"
 		contribution += "		for process in runningJobs:\n"
 		contribution += "			if process[0].poll() != None:\n"

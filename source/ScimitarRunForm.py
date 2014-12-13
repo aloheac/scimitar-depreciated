@@ -78,7 +78,8 @@ class RunNotebook( wx.Notebook ):
         sizerGridSingleMachine.Add( RunForm.propertyGridSingleMachine, 1, wx.EXPAND )
         panelSingleMachine.SetSizerAndFit( sizerGridSingleMachine )
         RunForm.propertyGridSingleMachine.Append( wx_propgrid.PropertyCategory( "Resources" ) )
-        RunForm.propertyGridSingleMachine.Append( wx_propgrid.IntProperty( "Number of simultaneous runs", "numRuns", 62 ))
+        RunForm.propertyGridSingleMachine.Append( wx_propgrid.IntProperty( "Number of simultaneous runs", "numSimRuns", RunForm.run.availableModules.SingleMachineResourceManager.numSimRuns ) )
+        RunForm.propertyGridSingleMachine.Append( wx_propgrid.IntProperty( "Process status check delay (seconds)", "procCheckWaitTime", RunForm.run.availableModules.SingleMachineResourceManager.procCheckWaitTime ) )
         
         RunForm.executionChoiceBook.AddPage( panelSingleMachine, "Single Machine or Interactive Job")
         RunForm.executionChoiceBook.AddPage( panelPBS, "PBS Scheduler on Cluster")
@@ -112,6 +113,7 @@ class ScimitarRunForm( wx.Frame ):
         # Add remaining event bindings.
         self.Bind( wx_grid.EVT_GRID_CELL_CHANGED, self.onParameterGridChanged, self.speciesGrid )
         self.Bind( wx_propgrid.EVT_PG_CHANGED, self.onUpdateRunParameterGrid, self.runPropertiesGrid )
+        self.Bind( wx_propgrid.EVT_PG_CHANGED, self.onUpdateSingleMachineParameterGrid, self.propertyGridSingleMachine )
     def InitializeUI(self, gridRows, gridColumns ):
         
         # ***** TOOLBAR *****
@@ -165,12 +167,12 @@ class ScimitarRunForm( wx.Frame ):
     		self.MainLog.WriteLogError( err.value )
     		return
     	self.MainLog.WriteLogText("Parameter grid verified. Checking run settings and generating execution script...")
-    	
     	try:
-    		self.run.generateScript()
+    		completeScript = self.run.generateScript()
     	except ScimitarCore.ScimitarRunError as err:
     		self.MainLog.WriteLogError( err.value )
     		return
+        ScimitarCore.writeScriptToFile( completeScript, self.run.runSettings.scriptLocation + '/' + self.run.runSettings.scriptFilename )
     	self.MainLog.WriteLogText("Done! The script is located at '" + self.run.runSettings.scriptFilename + "'.")
         
     def onSaveAsRun(self, evt):
@@ -206,3 +208,9 @@ class ScimitarRunForm( wx.Frame ):
             self.run.runSettings.optionBuildDirectoryStructure = evt.GetProperty().GetValue()
         elif evt.GetProperty().GetName() == "optionDisableInputRedirection":
             self.run.runSettings.optionDisableInputRedirection = evt.GetProperty().GetValue()
+            
+    def onUpdateSingleMachineParameterGrid(self, evt):
+        if evt.GetProperty().GetName() == "numSimRuns":
+            self.run.availableModules.SingleMachineResourceManager.numSimRuns = evt.GetProperty().GetValue()
+        elif evt.GetProperty().GetName() == "procCheckWaitTime":
+            self.run.availableModules.SingleMachineResourceManager.procCheckWaitTime = evt.GetProperty().GetValue()
