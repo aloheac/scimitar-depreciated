@@ -115,7 +115,7 @@ class ScimitarSpecies:
 			
 			# Generate a list that is an empty row.
 			emptyRow = []
-			for i in range( 1, self.numColumns ):
+			for i in range( 0, self.numColumns ):
 				emptyRow.append( str( DEFAULT_EMPTY_ELEMENT ) )
 				
 			# Insert the new row into the two-dimensional list parameterGrid. Note that

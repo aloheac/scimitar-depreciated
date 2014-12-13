@@ -86,6 +86,7 @@ class RunNotebook( wx.Notebook ):
         RunForm.executionChoiceBook.AddPage( panelPBS, "PBS Scheduler on Cluster")
         RunForm.executionChoiceBook.AddPage( panelSingleMachineMPI, "Single Machine or Interactive Job using MPI")
         RunForm.executionChoiceBook.AddPage( panelPBSMPI, "PBS Scheduler on Cluster using MPI")
+
 class ParameterGrid( wx_grid.Grid ):
     def __init__(self, parent ):
         wx_grid.Grid.__init__( self, parent, size=(100, 100) )
@@ -128,6 +129,8 @@ class ScimitarRunForm( wx.Frame ):
         self.Bind( wx_grid.EVT_GRID_CELL_CHANGED, self.onParameterGridChanged, self.speciesGrid )
         self.Bind( wx_propgrid.EVT_PG_CHANGED, self.onUpdateRunParameterGrid, self.runPropertiesGrid )
         self.Bind( wx_propgrid.EVT_PG_CHANGED, self.onUpdateSingleMachineParameterGrid, self.propertyGridSingleMachine )
+        self.speciesGrid.Bind( wx_grid.EVT_GRID_CELL_RIGHT_CLICK, self.onShowGridContextMenu )
+        
     def InitializeUI(self, gridRows, gridColumns ):
         
         # ***** TOOLBAR *****
@@ -137,13 +140,13 @@ class ScimitarRunForm( wx.Frame ):
         toolbarIconSize = (21, 21)
         reportCard_bmp = wx.Bitmap('./resources/reportCard.png') #wx.ArtProvider.GetBitmap(wx.ART_REPORT_VIEW, wx.ART_TOOLBAR, toolbarIconSize)
         createScript_bmp = wx.Bitmap('./resources/createScript.png') #wx.ArtProvider.GetBitmap(wx.ART_EXECUTABLE_FILE, wx.ART_TOOLBAR, toolbarIconSize)
-        close_bmp = wx.ArtProvider.GetBitmap(wx.ART_QUIT, wx.ART_OTHER, toolbarIconSize)
         save_bmp = wx.Bitmap('./resources/save.png')#wx.ArtProvider.GetBitmap(wx.ART_FILE_SAVE, wx.ART_OTHER, toolbarIconSize)
         saveAs_bmp = wx.Bitmap('./resources/saveAs.png')#wx.ArtProvider.GetBitmap(wx.ART_COPY, wx.ART_OTHER, toolbarIconSize)
-        help_bmp = wx.ArtProvider.GetBitmap(wx.ART_HELP, wx.ART_TOOLBAR, toolbarIconSize)
+        import_bmp = wx.Bitmap('./resources/import.png')
                                             
         toolbar_save = toolbar.AddLabelTool( wx.ID_ANY, "Save", save_bmp, shortHelp="Save the run to file." )
         toolbar_saveAs = toolbar.AddLabelTool( wx.ID_ANY, "Save As", saveAs_bmp, shortHelp="Save the run under a different filename." )
+        toolbar_import = toolbar.AddLabelTool( wx.ID_ANY, "Import", import_bmp, shortHelp="Import a set of parameters and values from a text file.")
         toolbar_reportCard = toolbar.AddLabelTool( wx.ID_ANY, "Report Card", reportCard_bmp, shortHelp="Check the run configuration and parameter grid for errors." )
         toolbar_createScript = toolbar.AddLabelTool( wx.ID_ANY, "Create Script", createScript_bmp, shortHelp="Generate the Python script which will execute this run on any machine." )
         
@@ -153,7 +156,8 @@ class ScimitarRunForm( wx.Frame ):
         self.Bind( wx.EVT_TOOL, self.onReportCard, toolbar_reportCard )  
         self.Bind( wx.EVT_TOOL, self.onCreateScript, toolbar_createScript )
         self.Bind( wx.EVT_TOOL, self.onSaveAsRun, toolbar_saveAs )
-        self.Bind( wx.EVT_TOOL, self.onSaveRun, toolbar_save )                          
+        self.Bind( wx.EVT_TOOL, self.onSaveRun, toolbar_save )
+        self.Bind( wx.EVT_TOOL, self.onImport, toolbar_import )                    
         # ***** END OF TOOLBAR *****
         
         self.mainPanel = wx.Panel( self )
@@ -252,5 +256,33 @@ class ScimitarRunForm( wx.Frame ):
             ScimitarCore.writeRunToFile( self.run, self.runPath )
             self.MainLog.WriteLogText("Scimitar modules have been updated to the latest versions for this run file and saved. Please re-open the run file.")
             self.Close()
+    
+    def onImport(self, evt):
+        openFileDialog = wx.FileDialog( self, "Import File", "", "", "All files (*.*)|*.*", wx.FD_OPEN|wx.FD_FILE_MUST_EXIST )
+        if openFileDialog.ShowModal() == wx.ID_CANCEL:
+            return  # A file was not opened.
         
+        f_import = open( openFileDialog.GetPath(), 'r' )
+        f_import.close()
         
+    def onShowGridContextMenu(self, evt):
+        self.contextMenu = wx.Menu()
+        menuItem_AddRow = wx.MenuItem( self.contextMenu, wx.ID_ANY, "Add Row")
+        menuItem_DeleteRow = wx.MenuItem( self.contextMenu, wx.ID_ANY, "Delete Row")
+        self.contextMenu.AppendItem( menuItem_AddRow )
+        self.contextMenu.AppendItem( menuItem_DeleteRow )
+        self.Bind(wx.EVT_MENU, lambda evtAddRow: self.onAddRow( evtAddRow, evt.GetRow() ), menuItem_AddRow )
+        self.Bind(wx.EVT_MENU, lambda evtDeleteRow: self.onDeleteRow( evtDeleteRow, evt.GetRow() ), menuItem_DeleteRow )
+        self.PopupMenu( self.contextMenu )
+        self.contextMenu.Destroy()
+
+    def onAddRow( self, evtAddRow, rowNumber ):
+        self.run.species.addRow( rowNumber )
+        self.speciesGrid.InsertRows( rowNumber )
+        for i in range( 0, self.run.species.numColumns ):
+            self.speciesGrid.SetCellValue( rowNumber, i, '--' )
+
+    def onDeleteRow( self, evtDeleteRow, rowNumber ):
+        self.run.species.deleteRow( rowNumber )
+        self.speciesGrid.DeleteRows( rowNumber )
+        self.run.species.printGrid()
