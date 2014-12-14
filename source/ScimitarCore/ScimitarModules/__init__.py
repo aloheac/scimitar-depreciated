@@ -22,3 +22,4 @@ from HeaderModule import *
 from SingleMachineResourceManager import *
 from CompileSource import *
 from CreateDirectoryStructure import *
+from CheckStatus import *

@@ -4,7 +4,7 @@
 # Very basic module that just prints out a heading.
 #
 # Version 6.0
-# 8 December 2014
+# 13 December 2014
 #
 # Joaquin E. Drut, Andrew C. Loheac
 # Department of Physics and Astronomy

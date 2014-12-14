@@ -12,19 +12,27 @@
 # University of North Carolina at Chapel Hill
 ####################################################################
 
-from ScimitarRun import *
 import pickle
 
+'''
+Write a given run to a binary data file using Pickle.
+'''
 def writeRunToFile( run, filename ):
     f = open( filename, 'wb' )
     pickle.dump( run, f, pickle.HIGHEST_PROTOCOL )
     f.close()
     
+'''
+Open a run file to reconstruct a ScimitarRun object.
+'''
 def openRunFromFile( filename ):
     f = open( filename, 'rb' )
     return pickle.load( f )
     f.close()
     
+'''
+Write a script to file.
+'''
 def writeScriptToFile( script, filename ):
     f = open( filename, 'w' )
     f.write( script )

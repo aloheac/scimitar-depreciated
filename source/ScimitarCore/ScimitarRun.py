@@ -66,6 +66,7 @@ class AvailableModules:
 		self.CompileSource = ScimitarModules.CompileSource( run )
 		self.HeaderModule = ScimitarModules.HeaderModule( run )
 		self.SingleMachineResourceManager = ScimitarModules.SingleMachineResourceManager( run )
+		self.CheckStatus = ScimitarModules.CheckStatus( run )
 
 """
 Definition class for a Scimitar run. This completely specifies the information
@@ -91,6 +92,7 @@ class ScimitarRun:
 		self.activateModule( self.availableModules.HeaderModule )
 		self.activateModule( self.availableModules.CompileSource )
 		self.activateModule( self.availableModules.CreateDirectoryStructure )
+		self.activateModule( self.availableModules.CheckStatus )
 	
 	"""
 	Activate a Scimitar module.
@@ -127,6 +129,16 @@ class ScimitarRun:
 			raise ScimitarRunError( "Provided module is not active." )
 		else:
 			raise ScimitarRunError( "Module '" + module.name + "' does not have a valid type." )
+		
+	def isModuleActive( self, module ):
+		if module in self.activePreExecutionModules:
+			return True
+		elif module in self.activePostExecutionModules:
+			return True
+		elif module == self.activeResourceManager:
+			return True
+		else:
+			return False
 		
 	def getReportCard( self ):
 		reportCard = "All grid checks passed!\n"
