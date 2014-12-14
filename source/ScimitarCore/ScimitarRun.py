@@ -54,6 +54,7 @@ class RunSettings:
 			self.optionCompileSource = True
 			self.optionBuildDirectoryStructure = True
 			self.optionDisableInputRedirection = False
+			self.optionGenerateCheckStatusScript = False
 
 """
 Struct containing instantiations of all available modules.

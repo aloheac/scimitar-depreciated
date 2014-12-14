@@ -60,6 +60,7 @@ class RunNotebook( wx.Notebook ):
         RunForm.runPropertiesGrid.Append( wx_propgrid.BoolProperty("Compile executable from source", "optionCompileSource", RunForm.run.runSettings.optionCompileSource ) )
         RunForm.runPropertiesGrid.Append( wx_propgrid.BoolProperty("Build directory structure", "optionBuildDirectoryStructure", RunForm.run.runSettings.optionBuildDirectoryStructure ) )
         RunForm.runPropertiesGrid.Append( wx_propgrid.BoolProperty("Disable input redirection", "optionDisableInputRedirection", RunForm.run.runSettings.optionDisableInputRedirection ) )
+        RunForm.runPropertiesGrid.Append( wx_propgrid.BoolProperty("Generate status check script", "optionGenerateCheckStatusScript", RunForm.run.runSettings.optionGenerateCheckStatusScript ) )
         
         # ***** EXECUTION PANEL *****
         executionSettingsSizer = wx.BoxSizer( wx.VERTICAL )
@@ -237,6 +238,8 @@ class ScimitarRunForm( wx.Frame ):
             self.run.runSettings.optionBuildDirectoryStructure = evt.GetProperty().GetValue()
         elif evt.GetProperty().GetName() == "optionDisableInputRedirection":
             self.run.runSettings.optionDisableInputRedirection = evt.GetProperty().GetValue()
+        elif evt.GetProperty().GetName() == "optionGenerateCheckStatusScript":
+            self.run.runSettings.optionGenerateCheckStatusScript = evt.GetProperty().GetValue()
             
     def onUpdateSingleMachineParameterGrid(self, evt):
         if evt.GetProperty().GetName() == "numSimRuns":
