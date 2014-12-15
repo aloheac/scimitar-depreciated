@@ -15,12 +15,9 @@
 ####################################################################
 
 import wx
-import ScimitarCore
 from ScimitarMainForm import *
-from ScimitarRunForm import *
 
 # Generate the main Scimitar GUI window.
-
 app = wx.App()
 mainScimitarForm = ScimitarMainForm()
 mainScimitarForm.Show()

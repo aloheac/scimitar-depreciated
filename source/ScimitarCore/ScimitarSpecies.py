@@ -213,7 +213,7 @@ class ScimitarSpecies:
 			directoryOrders.sort()
 			
 			# Make sure that the first element is '1'.
-			if not directoryOrders[0].strip() == '1':
+			if len( directoryOrders ) == 0 or not directoryOrders[0].strip() == '1':
 				raise ScimitarGridError( "The parameter grid must contain a directory order of 1." )
 			
 			# Make sure that the rest of the dir orders are consecutive.

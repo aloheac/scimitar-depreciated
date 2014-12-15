@@ -13,7 +13,7 @@
 
 import wx
 import wx.richtext as wx_richtext
-import time
+from time import strftime
 import ScimitarCore
 from ScimitarRunForm import *
 
@@ -21,6 +21,9 @@ MENU_ID_OPEN_RUN = 100
 MENU_ID_NEW_RUN = 101
 COLOR_RED = (255, 0, 0)
 
+"""
+Main log control for the Scimitar main form.
+"""
 class RichLogControl( wx_richtext.RichTextCtrl ):
 	def __init__( self, panel ):
 		wx_richtext.RichTextCtrl.__init__( self, panel, size=(300,400), style=wx.VSCROLL|wx.HSCROLL )
@@ -77,6 +80,9 @@ class ScimitarMainForm( wx.Frame ):
 		wx.Frame.__init__( self, None, -1, 'Scimitar', size=(400, 300) )
 		self.InitializeUI()
 		
+	"""
+	User interface initialization routine.
+	"""
 	def InitializeUI( self ):
 		# ***** MENU BAR *****.
 		menuBar = wx.MenuBar()
@@ -146,11 +152,17 @@ class ScimitarMainForm( wx.Frame ):
 		self.log.WriteLogText("Version 6.0 alpha (Dec 2014)\n")
 		self.log.WriteLogText("Need some guidance getting started?")
 		self.log.WriteLogText("Click on the 'Help' button above.\n")
-		self.log.WriteLogText("Date: " + time.strftime('%a %d %b %Y %H:%M:%S'))
+		self.log.WriteLogText("Date: " + strftime('%a %d %b %Y %H:%M:%S'))
 		
+	"""
+	Event Handler: Close the form upon exit.
+	"""
 	def onExit( self, evt ):
 		self.Close()
 		
+	"""
+	Event Handler: Launch file open dialog and open the run.
+	"""
 	def onOpenRun(self, evt):
 		openFileDialog = wx.FileDialog( self, "Open Scimitar Run", "", "", "Scimitar Run files (*.srn)|*.srn", wx.FD_OPEN|wx.FD_FILE_MUST_EXIST )
 		if openFileDialog.ShowModal() == wx.ID_CANCEL:
@@ -160,10 +172,16 @@ class ScimitarMainForm( wx.Frame ):
 		loadedRun = ScimitarCore.openRunFromFile( openFileDialog.GetPath() )
 		newRunEditor = ScimitarRunForm( self, loadedRun, openFileDialog.GetPath() )
 		
+	"""
+	Event Handler: Create a new run using defaults.
+	"""
 	def onNewRun(self, evt):
 		newRunEditor = ScimitarRunForm( self, ScimitarCore.ScimitarRun( ScimitarCore.ScimitarSpecies() ), None )
 		self.log.WriteLogText("Creating a new run.")
 		
+	"""
+	Event Handler: Create about box.
+	"""
 	def onAboutBox(self, evt):
 		description = """A visual driver for parameter-space exploration."""
 		copy = """(C) 2013 - 2014 Joaquin E. Drut, et al.
@@ -188,6 +206,9 @@ Research Fellowship Program under Grant No. DGE1144081."""
 		
 		wx.AboutBox( info )
 		
+	"""
+	Event Handler: Import a text file and generate the parameter grid.
+	"""
 	def onImport(self, evt):
 		openFileDialog = wx.FileDialog( self, "Import File", "", "", "All files (*.*)|*.*", wx.FD_OPEN|wx.FD_FILE_MUST_EXIST )
 		if openFileDialog.ShowModal() == wx.ID_CANCEL:
