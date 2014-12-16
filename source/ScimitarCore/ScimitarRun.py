@@ -68,6 +68,7 @@ class AvailableModules:
 		self.HeaderModule = ScimitarModules.HeaderModule( run )
 		self.SingleMachineResourceManager = ScimitarModules.SingleMachineResourceManager( run )
 		self.CheckStatus = ScimitarModules.CheckStatus( run )
+		self.PBSResourceManager = ScimitarModules.PBSResourceManager( run )
 
 """
 Definition class for a Scimitar run. This completely specifies the information

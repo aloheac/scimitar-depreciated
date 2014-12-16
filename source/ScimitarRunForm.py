@@ -130,6 +130,7 @@ class ScimitarRunForm( wx.Frame ):
         self.Bind( wx_propgrid.EVT_PG_CHANGED, self.onUpdateRunParameterGrid, self.runPropertiesGrid )
         self.Bind( wx_propgrid.EVT_PG_CHANGED, self.onUpdateSingleMachineParameterGrid, self.propertyGridSingleMachine )
         self.speciesGrid.Bind( wx_grid.EVT_GRID_CELL_RIGHT_CLICK, self.onShowGridContextMenu )
+        self.Bind( wx.EVT_CHOICEBOOK_PAGE_CHANGED, self.onResourceManagerSelectionChanged, self.executionChoiceBook )
         
     def InitializeUI(self, gridRows, gridColumns ):
         # ***** MENU BAR *****
@@ -341,3 +342,9 @@ class ScimitarRunForm( wx.Frame ):
     def onDeleteRow( self, evtDeleteRow, rowNumber ):
         self.run.species.deleteRow( rowNumber )
         self.speciesGrid.DeleteRows( rowNumber )
+        
+    def onResourceManagerSelectionChanged( self, evt ):
+    	if evt.GetSelection() == 0:
+    		self.run.activeResourceManager = self.run.availableModules.SingleMachineResourceManager
+    	elif evt.GetSelection() == 1:
+    		self.run.activeResourceManager = self.run.availableModules.PBSResourceManager
