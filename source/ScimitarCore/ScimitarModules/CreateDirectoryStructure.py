@@ -71,6 +71,6 @@ class CreateDirectoryStructure( PreExecutionModule ):
 		contribution += "		raise SystemExit\n"
 		contribution += "	proc = Popen( 'cp ' + initWorkingDir + '/" + self.run.runSettings.executableFilename + " .', shell=True )\n"
 		contribution += "	proc.wait()\n"
-		contribution += "os.chdir( initWorkingDir )"
+		contribution += "os.chdir( initWorkingDir )\n"
 		contribution += "# ***** End of PreExecution: Create Directory Structure *****\n"
 		return contribution

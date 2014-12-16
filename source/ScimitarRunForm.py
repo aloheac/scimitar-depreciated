@@ -75,14 +75,16 @@ class RunNotebook( wx.Notebook ):
         panelSingleMachineMPI = wx.Panel( RunForm.executionChoiceBook )
         panelPBSMPI = wx.Panel( RunForm.executionChoiceBook )
         
-        RunForm. propertyGridSingleMachine = wx_propgrid.PropertyGrid( panelSingleMachine )
+        RunForm.propertyGridSingleMachine = wx_propgrid.PropertyGrid( panelSingleMachine )
         sizerGridSingleMachine = wx.BoxSizer( wx.VERTICAL )
         sizerGridSingleMachine.Add( RunForm.propertyGridSingleMachine, 1, wx.EXPAND )
         panelSingleMachine.SetSizerAndFit( sizerGridSingleMachine )
         RunForm.propertyGridSingleMachine.Append( wx_propgrid.PropertyCategory( "Resources" ) )
         RunForm.propertyGridSingleMachine.Append( wx_propgrid.IntProperty( "Number of simultaneous runs", "numSimRuns", RunForm.run.availableModules.SingleMachineResourceManager.numSimRuns ) )
         RunForm.propertyGridSingleMachine.Append( wx_propgrid.IntProperty( "Process status check delay (seconds)", "procCheckWaitTime", RunForm.run.availableModules.SingleMachineResourceManager.procCheckWaitTime ) )
-        
+        RunForm.propertyGridSingleMachine.Append( wx_propgrid.PropertyCategory( "Additional Commands" ) )
+        RunForm.propertyGridSingleMachine.Append( wx_propgrid.LongStringProperty( "Additional pre-execution commands", "additionalPreExecutionCommands", RunForm.run.availableModules.SingleMachineResourceManager.additionalPreExecutionCommands ) )
+        RunForm.propertyGridSingleMachine.Append( wx_propgrid.LongStringProperty( "Additional post-execution commands", "additionalPostExecutionCommands", RunForm.run.availableModules.SingleMachineResourceManager.additionalPostExecutionCommands ) )
         RunForm.executionChoiceBook.AddPage( panelSingleMachine, "Single Machine or Interactive Job")
         RunForm.executionChoiceBook.AddPage( panelPBS, "PBS Scheduler on Cluster")
         RunForm.executionChoiceBook.AddPage( panelSingleMachineMPI, "Single Machine or Interactive Job using MPI")
@@ -246,6 +248,10 @@ class ScimitarRunForm( wx.Frame ):
             self.run.availableModules.SingleMachineResourceManager.numSimRuns = evt.GetProperty().GetValue()
         elif evt.GetProperty().GetName() == "procCheckWaitTime":
             self.run.availableModules.SingleMachineResourceManager.procCheckWaitTime = evt.GetProperty().GetValue()
+        elif evt.GetProperty().GetName() == "additionalPreExecutionCommands":
+        	self.run.availableModules.SingleMachineResourceManager.additionalPreExecutionCommands = str( evt.GetProperty().GetValue() )
+        elif evt.GetProperty().GetName() == "additionalPostExecutionCommands":
+        	self.run.availableModules.SingleMachineResourceManager.additionalPostExecutionCommands = str( evt.GetProperty().GetValue() )
             
     def onUpdateModules(self, evt):
         if not self.runPath == None:
