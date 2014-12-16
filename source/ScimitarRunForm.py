@@ -72,12 +72,12 @@ class RunNotebook( wx.Notebook ):
         executionSettingsSizer.Add( RunForm.executionChoiceBook, 1, wx.EXPAND )
         executionPanel.SetSizerAndFit( executionSettingsSizer )
         
-        # SINGLE MACHINE SETTINGS
         panelSingleMachine = wx.Panel( RunForm.executionChoiceBook )
         panelPBS = wx.Panel( RunForm.executionChoiceBook )
         panelSingleMachineMPI = wx.Panel( RunForm.executionChoiceBook )
         panelPBSMPI = wx.Panel( RunForm.executionChoiceBook )
         
+        # SINGLE MACHINE SETTINGS
         RunForm.propertyGridSingleMachine = wx_propgrid.PropertyGrid( panelSingleMachine )
         sizerGridSingleMachine = wx.BoxSizer( wx.VERTICAL )
         sizerGridSingleMachine.Add( RunForm.propertyGridSingleMachine, 1, wx.EXPAND )
@@ -92,6 +92,16 @@ class RunNotebook( wx.Notebook ):
         RunForm.executionChoiceBook.AddPage( panelPBS, "PBS Scheduler on Cluster")
         RunForm.executionChoiceBook.AddPage( panelSingleMachineMPI, "Single Machine or Interactive Job using MPI")
         RunForm.executionChoiceBook.AddPage( panelPBSMPI, "PBS Scheduler on Cluster using MPI")
+        
+        # PBS SETTINGS
+        RunForm.propertyGridPBS = wx_propgrid.PropertyGrid( panelPBS )
+        sizerGridPBS = wx.BoxSizer( wx.VERTICAL )
+        sizerGridPBS.Add( RunForm.propertyGridPBS, 1, wx.EXPAND )
+        panelPBS.SetSizerAndFit( sizerGridPBS )
+        RunForm.propertyGridPBS.Append( wx_propgrid.PropertyCategory( "PBS Settings" ) )
+        RunForm.propertyGridPBS.Append( wx_propgrid.IntProperty( "Number of nodes", "numNodes", RunForm.run.availableModules.PBSResourceManager.numNodes ) )
+        RunForm.propertyGridPBS.Append( wx_propgrid.IntProperty( "Processors per node (ppn)", "processorsPerNode", RunForm.run.availableModules.PBSResourceManager.processorsPerNode ) )
+        RunForm.propertyGridPBS.Append( wx_propgrid.StringProperty( "Walltime", "walltime", RunForm.run.availableModules.PBSResourceManager.walltime ) )
 
 """
 Basic ParameterGrid that inherits from wx.grid.Grid.
@@ -129,6 +139,7 @@ class ScimitarRunForm( wx.Frame ):
         self.Bind( wx_grid.EVT_GRID_CELL_CHANGED, self.onParameterGridChanged, self.speciesGrid )
         self.Bind( wx_propgrid.EVT_PG_CHANGED, self.onUpdateRunParameterGrid, self.runPropertiesGrid )
         self.Bind( wx_propgrid.EVT_PG_CHANGED, self.onUpdateSingleMachineParameterGrid, self.propertyGridSingleMachine )
+        self.Bind( wx_propgrid.EVT_PG_CHANGED, self.onUpdatePBSParameterGrid, self.propertyGridPBS )
         self.speciesGrid.Bind( wx_grid.EVT_GRID_CELL_RIGHT_CLICK, self.onShowGridContextMenu )
         self.Bind( wx.EVT_CHOICEBOOK_PAGE_CHANGED, self.onResourceManagerSelectionChanged, self.executionChoiceBook )
         
@@ -300,6 +311,15 @@ class ScimitarRunForm( wx.Frame ):
         	self.run.availableModules.SingleMachineResourceManager.additionalPreExecutionCommands = self._fixUnicodeResult( evt.GetProperty().GetValue() )
         elif evt.GetProperty().GetName() == "additionalPostExecutionCommands":
         	self.run.availableModules.SingleMachineResourceManager.additionalPostExecutionCommands = self._fixUnicodeResult( evt.GetProperty().GetValue() )
+    
+    def onUpdatePBSParameterGrid(self, evt):
+    	if evt.GetProperty().GetName() == "numNodes":
+    		self.run.availableModules.PBSResourceManager.numNodes = evt.GetProperty().GetValue()
+    	elif evt.GetProperty().GetName() == "processorsPerNode":
+    		self.run.availableModules.PBSResourceManager.processorsPerNodes = evt.GetProperty().GetValue()
+    	elif evt.GetProperty().GetName() == "walltime":
+    		self.run.availableModules.PBSResourceManager.walltime = evt.GetProperty().GetValue()
+    		
     """
     Event Handler: Update modules of a ScimitarRun to their latest versions.
     """
