@@ -210,18 +210,26 @@ Research Fellowship Program under Grant No. DGE1144081."""
 	Event Handler: Import a text file and generate the parameter grid.
 	"""
 	def onImport(self, evt):
+		# Open dialog for user to choose file to import.
 		openFileDialog = wx.FileDialog( self, "Import File", "", "", "All files (*.*)|*.*", wx.FD_OPEN|wx.FD_FILE_MUST_EXIST )
 		if openFileDialog.ShowModal() == wx.ID_CANCEL:
 			return  # A file was not opened.
 		
+		# Open the selected file and get a list of parameters and values. If the file
+		# is not in a format that can be read, alert the user of an error and return.
 		f_import = open( openFileDialog.GetPath(), 'r' )
 		value = []
 		parameter = []
-		for line in f_import:
-			value.append( line.split('#')[0].strip() )
-			parameter.append(line.split('#')[1].strip())
+		try:
+			for line in f_import:
+				value.append( line.split('#')[0].strip() )
+				parameter.append(line.split('#')[1].strip())
+		except:
+			self.log.WriteLogError("The given input file is not in an acceptable format.")
+			return
 		f_import.close()
 		
+		# Generate a parameter grid and Species object from the loaded set of parameters.
 		newSpecies = ScimitarCore.ScimitarSpecies()
 		parameterGrid = []
 		try:
@@ -229,10 +237,12 @@ Research Fellowship Program under Grant No. DGE1144081."""
 				parameterGrid.append([parameter[i],'--',value[i],'--'])
 		except:
 			self.log.WriteLogError("The given input file is not in an acceptable format.")
+			return
 			
 		newSpecies.parameterGrid = parameterGrid
 		newSpecies.numRows = len( parameter )
-		print parameterGrid
+		
+		# Show the run editor with the new species generated from the import.
 		newRunEditor = ScimitarRunForm( self, ScimitarCore.ScimitarRun( newSpecies ), None )
 		self.log.WriteLogText("Creating a new run from imported file.")
 		

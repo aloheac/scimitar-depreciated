@@ -4,7 +4,7 @@
 # Scimitar run form.
 #
 # Version 6.0
-# 11 December 2014
+# 16 December 2014
 #
 # Joaquin E. Drut, Andrew C. Loheac
 # Department of Physics and Astronomy
@@ -15,19 +15,21 @@ import wx
 import wx.grid as wx_grid
 import wx.propgrid as wx_propgrid
 from os.path import isfile
+from os import linesep
 import ScimitarCore
 
 class RunNotebook( wx.Notebook ):
     def __init__(self, RunForm, parent ):
         wx.Notebook.__init__(self, parent, style=wx.BK_DEFAULT, size=(500, 50) )
         
+        # Create panels and pages for each of the three notebook tabs.
         parameterGridPanel = wx.Panel(self, -1)
         settingsPanel = wx.Panel(self, -1)
         executionPanel = wx.Panel(self, -1)
         
         self.AddPage(parameterGridPanel, "Parameter Grid")
         self.AddPage(settingsPanel, "Run Configuration")
-        self.AddPage(executionPanel, "Execution Settings")
+        self.AddPage(executionPanel, "Resources and Execution")
 
         # ***** PARAMETER GRID TAB *****
         parameterGridSizer = wx.BoxSizer( wx.HORIZONTAL )
@@ -35,6 +37,7 @@ class RunNotebook( wx.Notebook ):
         parameterGridSizer.Add( RunForm.speciesGrid, 1, wx.EXPAND )
         parameterGridPanel.SetSizerAndFit( parameterGridSizer )
 
+		# Create the parameter grid control.
         RunForm.speciesGrid.CreateGrid( RunForm.run.species.numRows, RunForm.run.species.numColumns )
         RunForm.speciesGrid.SetColLabelValue( 0, "Parameter" )
         RunForm.speciesGrid.SetColLabelValue( 1, "Type")
@@ -45,9 +48,9 @@ class RunNotebook( wx.Notebook ):
         # ***** RUN SETTINGS TAB *****
         runSettingsSizer = wx.BoxSizer( wx.VERTICAL )
         RunForm.runPropertiesGrid = wx_propgrid.PropertyGrid( settingsPanel, size=(300, 300) )
-        #runSettingsSizer.Add( wx.StaticText( settingsPanel, label="This tab describes basic run configuration settings for the Scimitar script. A resource manager must also be selected and configured on the following tab." ), 1 )
         runSettingsSizer.Add( RunForm.runPropertiesGrid, 2, wx.EXPAND )
         settingsPanel.SetSizerAndFit( runSettingsSizer )
+        
         RunForm.runPropertiesGrid.Append( wx_propgrid.PropertyCategory( "Basic Script Properties" ) )
         RunForm.runPropertiesGrid.Append( wx_propgrid.StringProperty( "Script filename", "scriptFilename", RunForm.run.runSettings.scriptFilename ) )
         RunForm.runPropertiesGrid.Append( wx_propgrid.DirProperty( "Script output location", "scriptLocation", RunForm.run.runSettings.scriptLocation ) )
@@ -62,7 +65,7 @@ class RunNotebook( wx.Notebook ):
         RunForm.runPropertiesGrid.Append( wx_propgrid.BoolProperty("Disable input redirection", "optionDisableInputRedirection", RunForm.run.runSettings.optionDisableInputRedirection ) )
         RunForm.runPropertiesGrid.Append( wx_propgrid.BoolProperty("Generate status check script", "optionGenerateCheckStatusScript", RunForm.run.runSettings.optionGenerateCheckStatusScript ) )
         
-        # ***** EXECUTION PANEL *****
+        # ***** RESOURCES AND EXECUTION PANEL *****
         executionSettingsSizer = wx.BoxSizer( wx.VERTICAL )
         RunForm.singleMachinePropertyGrid = wx_propgrid.PropertyGrid( executionPanel )
         RunForm.executionChoiceBook = wx.Choicebook( executionPanel, id=wx.ID_ANY )
@@ -90,10 +93,16 @@ class RunNotebook( wx.Notebook ):
         RunForm.executionChoiceBook.AddPage( panelSingleMachineMPI, "Single Machine or Interactive Job using MPI")
         RunForm.executionChoiceBook.AddPage( panelPBSMPI, "PBS Scheduler on Cluster using MPI")
 
+"""
+Basic ParameterGrid that inherits from wx.grid.Grid.
+"""
 class ParameterGrid( wx_grid.Grid ):
     def __init__(self, parent ):
         wx_grid.Grid.__init__( self, parent, size=(100, 100) )
         
+"""
+Form definition for the Scimitar Run Editor.
+"""
 class ScimitarRunForm( wx.Frame ):
     def __init__(self, parent, run, runPath ):
         wx.Frame.__init__(self, parent, -1, 'Scimitar Run Editor', size=(600,500) )
@@ -109,18 +118,6 @@ class ScimitarRunForm( wx.Frame ):
         self.moduleSingleMachineResourceManager = ScimitarCore.ScimitarModules.SingleMachineResourceManager( run )
         self.moduleCompileSource = ScimitarCore.ScimitarModules.CompileSource( run )
         
-        # Generate menu bar.
-        menuBar = wx.MenuBar()
-        menuFile = wx.Menu()
-        menuFile_Save = menuFile.Append( wx.ID_ANY, "&Save Run" )
-        menuFile_SaveAs = menuFile.Append( wx.ID_ANY, "&Save Run As...")
-        menuFile_UpdateModules = menuFile.Append( wx.ID_ANY, "Update Modules")
-        menuBar.Append( menuFile, "&File" )
-        self.Bind( wx.EVT_MENU, self.onSaveRun, menuFile_Save )
-        self.Bind( wx.EVT_MENU, self.onSaveAsRun, menuFile_SaveAs )
-        self.Bind( wx.EVT_MENU, self.onUpdateModules, menuFile_UpdateModules )
-        self.SetMenuBar( menuBar )
-        
         self.InitializeUI( run.species.numRows, run.species.numColumns )
         
         # Load parameter grid from the run.
@@ -135,6 +132,20 @@ class ScimitarRunForm( wx.Frame ):
         self.speciesGrid.Bind( wx_grid.EVT_GRID_CELL_RIGHT_CLICK, self.onShowGridContextMenu )
         
     def InitializeUI(self, gridRows, gridColumns ):
+        # ***** MENU BAR *****
+        menuBar = wx.MenuBar()
+        menuFile = wx.Menu()
+        menuFile_Save = menuFile.Append( wx.ID_ANY, "&Save Run" )
+        menuFile_SaveAs = menuFile.Append( wx.ID_ANY, "&Save Run As...")
+        menuFile_UpdateModules = menuFile.Append( wx.ID_ANY, "Update Modules")
+        menuBar.Append( menuFile, "&File" )
+        
+        self.Bind( wx.EVT_MENU, self.onSaveRun, menuFile_Save )
+        self.Bind( wx.EVT_MENU, self.onSaveAsRun, menuFile_SaveAs )
+        self.Bind( wx.EVT_MENU, self.onUpdateModules, menuFile_UpdateModules )
+        
+        self.SetMenuBar( menuBar )
+        # ***** END OF MENU BAR *****
         
         # ***** TOOLBAR *****
         toolbar = self.CreateToolBar( wx.TB_TEXT )
@@ -157,10 +168,10 @@ class ScimitarRunForm( wx.Frame ):
         self.Bind( wx.EVT_TOOL, self.onReportCard, toolbar_reportCard )  
         self.Bind( wx.EVT_TOOL, self.onCreateScript, toolbar_createScript )
         self.Bind( wx.EVT_TOOL, self.onSaveAsRun, toolbar_saveAs )
-        self.Bind( wx.EVT_TOOL, self.onSaveRun, toolbar_save )
-                           
+        self.Bind( wx.EVT_TOOL, self.onSaveRun, toolbar_save )                           
         # ***** END OF TOOLBAR *****
         
+        # Create main panel of the run editor.
         self.mainPanel = wx.Panel( self )
         runNB = RunNotebook( self, self.mainPanel )
         self.mainBoxSizer = wx.BoxSizer( wx.HORIZONTAL )
@@ -169,6 +180,9 @@ class ScimitarRunForm( wx.Frame ):
         
         self.Show()
         
+    """
+    Event Handler: Generate report card and write output to the log of the main window.
+    """
     def onReportCard(self, evt):
     	self.MainLog.WriteLogHeader("\nReport Card")
         try:
@@ -177,7 +191,10 @@ class ScimitarRunForm( wx.Frame ):
         	self.MainLog.WriteLogError( err.value )
         	return
         self.MainLog.WriteLogText( self.run.getReportCard() )
-        
+    
+    """
+    Event Handler: Generate script and write output to main window.
+    """ 
     def onCreateScript(self, evt):
     	self.MainLog.WriteLogHeader("\nGenerate Script")
     	self.MainLog.WriteLogText("Checking parameter grid for errors...")
@@ -195,6 +212,9 @@ class ScimitarRunForm( wx.Frame ):
         ScimitarCore.writeScriptToFile( completeScript, self.run.runSettings.scriptLocation + '/' + self.run.runSettings.scriptFilename )
     	self.MainLog.WriteLogText("Done! The script is located at '" + self.run.runSettings.scriptFilename + "'.")
         
+    """
+    Event Handler: 'Save as' run.
+    """
     def onSaveAsRun(self, evt):
         saveFileDialog = wx.FileDialog( self, "Save Scimitar Run", "", "", "Scimitar Run files (*.srn)|*.srn", wx.FD_SAVE|wx.FD_OVERWRITE_PROMPT )
         if saveFileDialog.ShowModal() == wx.ID_CANCEL:
@@ -204,6 +224,9 @@ class ScimitarRunForm( wx.Frame ):
         self.runPath = saveFileDialog.GetPath()
         self.MainLog.WriteLogText("Run file '" + str( saveFileDialog.GetPath() ) + "' saved as.")
     
+    """
+    Event Handler: Save run.
+    """
     def onSaveRun(self, evt):
         if self.runPath == None:
             self.onSaveAsRun( evt )
@@ -214,13 +237,21 @@ class ScimitarRunForm( wx.Frame ):
             self.MainLog.WriteLogText("Run file '" + str( self.runPath ) + "' saved.")
         else:
             self.onSaveAsRun( evt )
-            
+    
+    """
+    Event Handler: Update ScimitarSpecies parameter grid when an entry in the parameter
+    grid in the run editor is changed.
+    """        
     def onParameterGridChanged(self, evt):
         # Save parameter grid to the run.
         for i in range( 0, self.run.species.numRows ):
             for j in range( 0, self.run.species.numColumns ):
                 self.run.species.setElement( i, j, str( self.speciesGrid.GetCellValue( i, j ) ) )
                 
+    """
+    Event Handler: Update ScimitarRun object when an entry in the run parameter grid is
+    updated.
+    """
     def onUpdateRunParameterGrid(self, evt):
         if evt.GetProperty().GetName() == "scriptFilename":
             self.run.runSettings.scriptFilename = evt.GetProperty().GetValue()
@@ -242,28 +273,46 @@ class ScimitarRunForm( wx.Frame ):
             self.run.runSettings.optionDisableInputRedirection = evt.GetProperty().GetValue()
         elif evt.GetProperty().GetName() == "optionGenerateCheckStatusScript":
             self.run.runSettings.optionGenerateCheckStatusScript = evt.GetProperty().GetValue()
-            
+    
+    """
+    Format the resulting unicode type from the PropertyGrid LongString value to 
+    correctly respect new lines. The purpose of this function may seem odd, but it is
+    to address an issue with respect to conversion of the unicode format that wx.propgrid
+    apparently uses. The result in the ScimitarRun class should be a proper Python string.
+    """
+    def _fixUnicodeResult(self, value ):
+    	fixedValue = ""
+    	for ch in str( value ):
+    		fixedValue += str( ch )
+    	return fixedValue.replace( "\\n", linesep )
+    	
+    """
+    Event Handler: Update the SingleMachineResourceManager module when an entry in the 
+    respective parameter grid is updated.
+    """     
     def onUpdateSingleMachineParameterGrid(self, evt):
         if evt.GetProperty().GetName() == "numSimRuns":
             self.run.availableModules.SingleMachineResourceManager.numSimRuns = evt.GetProperty().GetValue()
         elif evt.GetProperty().GetName() == "procCheckWaitTime":
             self.run.availableModules.SingleMachineResourceManager.procCheckWaitTime = evt.GetProperty().GetValue()
         elif evt.GetProperty().GetName() == "additionalPreExecutionCommands":
-        	self.run.availableModules.SingleMachineResourceManager.additionalPreExecutionCommands = str( evt.GetProperty().GetValue() )
+        	self.run.availableModules.SingleMachineResourceManager.additionalPreExecutionCommands = self._fixUnicodeResult( evt.GetProperty().GetValue() )
         elif evt.GetProperty().GetName() == "additionalPostExecutionCommands":
-        	self.run.availableModules.SingleMachineResourceManager.additionalPostExecutionCommands = str( evt.GetProperty().GetValue() )
-            
+        	self.run.availableModules.SingleMachineResourceManager.additionalPostExecutionCommands = self._fixUnicodeResult( evt.GetProperty().GetValue() )
+    """
+    Event Handler: Update modules of a ScimitarRun to their latest versions.
+    """
     def onUpdateModules(self, evt):
         if not self.runPath == None:
-            #self.run.availableModules.HeaderModule = ScimitarCore.ScimitarModules.HeaderModule( self.run )
-            #self.run.availableModules.SingleMachineResourceManager = ScimitarCore.ScimitarModules.SingleMachineResourceManager( self.run )
-            #self.run.availableModules.CompileSource = ScimitarCore.ScimitarModules.CompileSource( self.run )
-            #self.run.availableModules.CreateDirectoryStructure = ScimitarCore.ScimitarModules.CreateDirectoryStructure( self.run )
             self.run = ScimitarCore.ScimitarRun( self.run.species )
             ScimitarCore.writeRunToFile( self.run, self.runPath )
             self.MainLog.WriteLogText("Scimitar modules have been updated to the latest versions for this run file and saved. Please re-open the run file.")
             self.Close()
         
+    """
+    Event Handler: Show the context menu that allows one to add or delete rows from the 
+    parameter grid.
+    """
     def onShowGridContextMenu(self, evt):
         self.contextMenu = wx.Menu()
         menuItem_AddRow = wx.MenuItem( self.contextMenu, wx.ID_ANY, "Add Row")
@@ -275,12 +324,20 @@ class ScimitarRunForm( wx.Frame ):
         self.PopupMenu( self.contextMenu )
         self.contextMenu.Destroy()
 
+	"""
+	Event Handler: Add a row to the parameter grid in the run form and the ScimitarSpecies
+	parameter grid.
+	"""
     def onAddRow( self, evtAddRow, rowNumber ):
         self.run.species.addRow( rowNumber )
         self.speciesGrid.InsertRows( rowNumber )
         for i in range( 0, self.run.species.numColumns ):
             self.speciesGrid.SetCellValue( rowNumber, i, '--' )
 
+	"""
+	Event Handler: Delete a row from the parameter grid in the run for and the
+	ScimitarSpecies parameter grid.
+	"""
     def onDeleteRow( self, evtDeleteRow, rowNumber ):
         self.run.species.deleteRow( rowNumber )
         self.speciesGrid.DeleteRows( rowNumber )

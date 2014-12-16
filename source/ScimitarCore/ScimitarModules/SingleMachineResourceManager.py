@@ -37,7 +37,7 @@ class SingleMachineResourceManager( ResourceManagerModule ):
 		contribution += "initialWorkingDir = os.path.dirname(os.path.abspath(__file__))\n\n"
 		if not self.additionalPreExecutionCommands.strip() == "":
 			contribution += "print '>> Executing additional pre-execution commands...'\n"
-			contribution += "ADDTIONAL_PRE_EXEC_CMDS = " + str( self.additionalPreExecutionCommands.splitlines() ) + "\n"
+			contribution += "ADDITIONAL_PRE_EXEC_CMDS = " + str( self.additionalPreExecutionCommands.splitlines() ) + "\n"
 			contribution += "for execLine in ADDITIONAL_PRE_EXEC_CMDS:\n"
 			contribution += "	proc = Popen( execLine, shell=True )\n"
 			contribution += "	proc.wait()\n"
@@ -60,7 +60,7 @@ class SingleMachineResourceManager( ResourceManagerModule ):
 		contribution += "		sleep( " + str( self.procCheckWaitTime ) + " )\n"
 		if not self.additionalPostExecutionCommands.strip() == "":
 			contribution += "print '>> Executing additional post-execution commands...'\n"
-			contribution += "ADDTIONAL_POST_EXEC_CMDS = " + str( self.additionalPostExecutionCommands.splitlines() ) + "\n"
+			contribution += "ADDITIONAL_POST_EXEC_CMDS = " + str( self.additionalPostExecutionCommands.splitlines() ) + "\n"
 			contribution += "for execLine in ADDITIONAL_POST_EXEC_CMDS:\n"
 			contribution += "	proc = Popen( execLine, shell=True )\n"
 			contribution += "	proc.wait()\n"
