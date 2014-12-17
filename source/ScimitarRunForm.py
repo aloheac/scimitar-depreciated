@@ -135,6 +135,12 @@ class ScimitarRunForm( wx.Frame ):
             for j in range( 0, run.species.numColumns ):
                 self.speciesGrid.SetCellValue( i, j, self.run.species.getElement( i, j ) )
         
+        # Set choice of active resource manager.
+        if self.run.activeResourceManager.moduleName == "Single Machine":
+        	self.executionChoiceBook.SetSelection( 0 )
+        elif self.run.activeResourceManager.moduleName == "PBS":
+        	self.executionChoiceBook.SetSelection( 1 )
+        	
         # Add remaining event bindings.
         self.Bind( wx_grid.EVT_GRID_CELL_CHANGED, self.onParameterGridChanged, self.speciesGrid )
         self.Bind( wx_propgrid.EVT_PG_CHANGED, self.onUpdateRunParameterGrid, self.runPropertiesGrid )

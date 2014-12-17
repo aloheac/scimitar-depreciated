@@ -47,5 +47,7 @@ class PBSResourceManager( ResourceManagerModule ):
 		contribution += "	f_pbs_script.write( 'cd $PBS_O_WORKDIR\\n' )\n"
 		contribution += "	f_pbs_script.write( './" + self.run.runSettings.executableFilename + inputRedirection + self.run.runSettings.inputFilename + " >> " + self.run.runSettings.outputFilename + "\\n' )\n"
 		contribution += "	f_pbs_script.close()\n"
+		contribution += "	proc = Popen( 'qsub pbs_job_script.sub', shell=True )\n"
+		contribution += "	proc.wait()\n"
 		contribution += "# ***** End of ResourceManager: PBS *****\n\n"
 		return contribution
