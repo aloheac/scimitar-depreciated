@@ -31,6 +31,7 @@ class RichLogControl( wx_richtext.RichTextCtrl ):
 	"""
 	Write an error to the log file in the main window.
 	"""
+	# NOTE: KeyEvent for the down arrow is 317.
 	def WriteLogError( self, err ):
 		self.MoveEnd()
 		self.BeginTextColour( COLOR_RED )
@@ -40,7 +41,7 @@ class RichLogControl( wx_richtext.RichTextCtrl ):
 		self.WriteText( err )
 		self.EndTextColour()
 		self.Newline()
-		self.ScrollIntoView( self.GetCaretPosition(), 0 )
+		self.ScrollIntoView( self.GetCaretPosition(), 317 )
 		
 	"""
 	Write standard text to the log file in the main window.
@@ -49,8 +50,8 @@ class RichLogControl( wx_richtext.RichTextCtrl ):
 		self.MoveEnd()
 		self.WriteText( text )
 		self.Newline()
-		self.ScrollIntoView( self.GetCaretPosition(), 0 )
-	
+		self.ScrollIntoView( self.GetCaretPosition(), 317 )
+			
 	"""
 	Write standard text to the log file in the main window.
 	"""	
@@ -60,7 +61,7 @@ class RichLogControl( wx_richtext.RichTextCtrl ):
 		self.WriteText( text )
 		self.EndBold()
 		self.Newline()
-		self.ScrollIntoView( self.GetCaretPosition(), 0 )
+		self.ScrollIntoView( self.GetCaretPosition(), 317 )
 		
 	"""
 	Write important information to the log file in the main window.
@@ -73,7 +74,7 @@ class RichLogControl( wx_richtext.RichTextCtrl ):
 		self.EndBold()
 		self.EndTextColour()
 		self.Newline()
-		
+		self.ScrollIntoView( self.GetCaretPosition(), 317 )
 		
 class ScimitarMainForm( wx.Frame ):
 	def __init__( self ):

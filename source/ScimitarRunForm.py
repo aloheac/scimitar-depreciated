@@ -342,8 +342,10 @@ class ScimitarRunForm( wx.Frame ):
         if not self.runPath == None:
             self.run = ScimitarCore.ScimitarRun( self.run.species )
             ScimitarCore.writeRunToFile( self.run, self.runPath )
-            self.MainLog.WriteLogText("Scimitar modules have been updated to the latest versions for this run file and saved. Please re-open the run file.")
+            self.MainLog.WriteLogInformation("Scimitar modules have been updated to the latest versions for this run file and saved. Please re-open the run file.")
             self.Close()
+        else:
+        	self.MainLog.WriteLogInformation("This is a new run file. All modules are already the latest versions.")
         
     """
     Event Handler: Show the context menu that allows one to add or delete rows from the 
