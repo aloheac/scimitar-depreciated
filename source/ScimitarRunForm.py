@@ -54,6 +54,7 @@ class RunNotebook( wx.Notebook ):
         RunForm.runPropertiesGrid.Append( wx_propgrid.PropertyCategory( "Basic Script Properties" ) )
         RunForm.runPropertiesGrid.Append( wx_propgrid.StringProperty( "Script filename", "scriptFilename", RunForm.run.runSettings.scriptFilename ) )
         RunForm.runPropertiesGrid.Append( wx_propgrid.DirProperty( "Script output location", "scriptLocation", RunForm.run.runSettings.scriptLocation ) )
+        RunForm.runPropertiesGrid.Append( wx_propgrid.LongStringProperty( "Run notes", "runNotes", RunForm.run.runNotes ) )
         RunForm.runPropertiesGrid.Append( wx_propgrid.PropertyCategory( "Executable Properties" ) )
         RunForm.runPropertiesGrid.Append( wx_propgrid.FileProperty( "Executable filename", "executableFilename", RunForm.run.runSettings.executableFilename ) )
         RunForm.runPropertiesGrid.Append( wx_propgrid.FileProperty( "Output filename", "outputFilename", RunForm.run.runSettings.outputFilename ) )
@@ -278,6 +279,8 @@ class ScimitarRunForm( wx.Frame ):
             self.run.runSettings.scriptFilename = evt.GetProperty().GetValue()
         elif evt.GetProperty().GetName() == "scriptLocation":
             self.run.runSettings.scriptLocation = evt.GetProperty().GetValue()
+        elif evt.GetProperty().GetName() == "runNotes":
+        	self.run.runNotes = evt.GetProperty().GetValue()
         elif evt.GetProperty().GetName() == "executableFilename":
             self.run.runSettings.executableFilename = evt.GetProperty().GetValue()
         elif evt.GetProperty().GetName() == "inputFilename":
