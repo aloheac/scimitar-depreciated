@@ -90,8 +90,8 @@ class RunNotebook( wx.Notebook ):
         RunForm.propertyGridSingleMachine.Append( wx_propgrid.LongStringProperty( "Additional post-execution commands", "additionalPostExecutionCommands", RunForm.run.availableModules.SingleMachineResourceManager.additionalPostExecutionCommands ) )
         RunForm.executionChoiceBook.AddPage( panelSingleMachine, "Single Machine or Interactive Job")
         RunForm.executionChoiceBook.AddPage( panelPBS, "PBS Scheduler on Cluster")
-        RunForm.executionChoiceBook.AddPage( panelSingleMachineMPI, "Single Machine or Interactive Job using MPI")
-        RunForm.executionChoiceBook.AddPage( panelPBSMPI, "PBS Scheduler on Cluster using MPI")
+        #RunForm.executionChoiceBook.AddPage( panelSingleMachineMPI, "Single Machine or Interactive Job using MPI")
+        #RunForm.executionChoiceBook.AddPage( panelPBSMPI, "PBS Scheduler on Cluster using MPI")
         
         # PBS SETTINGS
         RunForm.propertyGridPBS = wx_propgrid.PropertyGrid( panelPBS )
@@ -102,6 +102,9 @@ class RunNotebook( wx.Notebook ):
         RunForm.propertyGridPBS.Append( wx_propgrid.IntProperty( "Number of nodes", "numNodes", RunForm.run.availableModules.PBSResourceManager.numNodes ) )
         RunForm.propertyGridPBS.Append( wx_propgrid.IntProperty( "Processors per node (ppn)", "processorsPerNode", RunForm.run.availableModules.PBSResourceManager.processorsPerNode ) )
         RunForm.propertyGridPBS.Append( wx_propgrid.StringProperty( "Walltime", "walltime", RunForm.run.availableModules.PBSResourceManager.walltime ) )
+        RunForm.propertyGridPBS.Append( wx_propgrid.PropertyCategory( "Additional Commands" ) )
+        RunForm.propertyGridPBS.Append( wx_propgrid.LongStringProperty( "Additional pre-execution commands", "additionalPreExecutionCommands", RunForm.run.availableModules.PBSResourceManager.additionalPreExecutionCommands ) )
+        RunForm.propertyGridPBS.Append( wx_propgrid.LongStringProperty( "Additional post-execution commands", "additionalPostExecutionCommands", RunForm.run.availableModules.PBSResourceManager.additionalPostExecutionCommands ) )
 
 """
 Basic ParameterGrid that inherits from wx.grid.Grid.
@@ -325,7 +328,10 @@ class ScimitarRunForm( wx.Frame ):
     		self.run.availableModules.PBSResourceManager.processorsPerNodes = evt.GetProperty().GetValue()
     	elif evt.GetProperty().GetName() == "walltime":
     		self.run.availableModules.PBSResourceManager.walltime = evt.GetProperty().GetValue()
-    		
+    	elif evt.GetProperty().GetName() == "additionalPreExecutionCommands":
+        	self.run.availableModules.PBSResourceManager.additionalPreExecutionCommands = self._fixUnicodeResult( evt.GetProperty().GetValue() )
+        elif evt.GetProperty().GetName() == "additionalPostExecutionCommands":
+        	self.run.availableModules.PBSResourceManager.additionalPostExecutionCommands = self._fixUnicodeResult( evt.GetProperty().GetValue() )
     """
     Event Handler: Update modules of a ScimitarRun to their latest versions.
     """
