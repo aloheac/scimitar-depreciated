@@ -42,6 +42,8 @@ expand all ranges and functions).
 """
 # ASSERTION: All values are valid and of the matching type.	
 def _expandValues( value, valueType ):
+	FORCE_ZERO_THRESHOLD = 1e-14  # See NOTE below.
+	
 	if valueType == "int" or valueType == "real":
 		# Something could be a list: 1,2,3,4.
 		return value.split(',')
@@ -54,6 +56,13 @@ def _expandValues( value, valueType ):
 			step = float( splitRange.split(':')[1] )
 			maximum = float( splitRange.split(':')[2] )
 			while minimum <= maximum:
+				# NOTE: When iterating over values that go from being negative to
+				# positive, a value of zero will be given as machine epsilon instead
+				# (i.e. 1e-17) instead. To correct this, if the difference between the
+				# calculated step and zero is less then a threshold, force the value to
+				# be 0.0.
+				if abs( minimum ) < FORCE_ZERO_THRESHOLD:
+					minimum = 0.0
 				allValues.append( minimum )
 				minimum += step
 		return allValues
