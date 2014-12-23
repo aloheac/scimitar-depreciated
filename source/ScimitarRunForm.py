@@ -89,7 +89,7 @@ class RunNotebook( wx.Notebook ):
         RunForm.propertyGridSingleMachine.Append( wx_propgrid.PropertyCategory( "Additional Commands" ) )
         RunForm.propertyGridSingleMachine.Append( wx_propgrid.LongStringProperty( "Additional pre-execution commands", "additionalPreExecutionCommands", RunForm.run.availableModules.SingleMachineResourceManager.additionalPreExecutionCommands ) )
         RunForm.propertyGridSingleMachine.Append( wx_propgrid.LongStringProperty( "Additional post-execution commands", "additionalPostExecutionCommands", RunForm.run.availableModules.SingleMachineResourceManager.additionalPostExecutionCommands ) )
-        RunForm.executionChoiceBook.AddPage( panelSingleMachine, "Single Machine or Interactive Job")
+        RunForm.executionChoiceBook.AddPage( panelSingleMachine, "Single Machine or Interactive Job (Recovery Enabled)")
         RunForm.executionChoiceBook.AddPage( panelPBS, "PBS Scheduler on Cluster")
         #RunForm.executionChoiceBook.AddPage( panelSingleMachineMPI, "Single Machine or Interactive Job using MPI")
         #RunForm.executionChoiceBook.AddPage( panelPBSMPI, "PBS Scheduler on Cluster using MPI")
