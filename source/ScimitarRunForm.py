@@ -340,10 +340,35 @@ class ScimitarRunForm( wx.Frame ):
     """
     def onUpdateModules(self, evt):
         if not self.runPath == None:
-            self.run = ScimitarCore.ScimitarRun( self.run.species )
-            ScimitarCore.writeRunToFile( self.run, self.runPath )
-            self.MainLog.WriteLogInformation("Scimitar modules have been updated to the latest versions for this run file and saved. Please re-open the run file.")
-            self.Close()
+			# Save old main run settings.
+			oldScriptFilename = self.run.runSettings.scriptFilename
+			oldScriptLocation = self.run.runSettings.scriptLocation
+			oldExecutableFilename = self.run.runSettings.executableFilename
+			oldInputFilename = self.run.runSettings.inputFilename
+			oldSourcePath = self.run.runSettings.sourcePath
+			oldOptionCompileSource = self.run.runSettings.optionCompileSource
+			oldOptionBuildDirectoryStructure = self.run.runSettings.optionBuildDirectoryStructure
+			oldOptionDisableInputRedirection = self.run.runSettings.optionDisableInputRedirection
+			oldOptionGenerateCheckStatusScript = self.run.runSettings.optionGenerateCheckStatusScript
+
+			# Instantiate new run with the same species.
+			self.run = ScimitarCore.ScimitarRun( self.run.species )
+
+			# Restore old main run settings.
+			self.run.runSettings.scriptFilename = oldScriptFilename
+			self.run.runSettings.scriptLocation = oldScriptLocation
+			self.run.runSettings.executableFilename = oldExecutableFilename 
+			self.run.runSettings.inputFilename = oldInputFilename
+			self.run.runSettings.sourcePath = oldSourcePath 
+			self.run.runSettings.optionCompileSource = oldOptionCompileSource
+			self.run.runSettings.optionBuildDirectoryStructure = oldOptionBuildDirectoryStructure
+			self.run.runSettings.optionDisableInputRedirection = oldOptionDisableInputRedirection
+			self.run.runSettings.optionGenerateCheckStatusScript = oldOptionGenerateCheckStatusScript
+
+			# Save run file.
+			ScimitarCore.writeRunToFile( self.run, self.runPath )
+			self.MainLog.WriteLogInformation("Scimitar modules have been updated to the latest versions for this run file and saved. Modules have been reset to their defaults. Please re-open the run file.")
+			self.Close()
         else:
         	self.MainLog.WriteLogInformation("This is a new run file. All modules are already the latest versions.")
         
