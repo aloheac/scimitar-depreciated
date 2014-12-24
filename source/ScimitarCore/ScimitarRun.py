@@ -172,5 +172,5 @@ class ScimitarRun:
 		for module in self.activePostExecutionModules:
 			script += module.getScriptContribution()
 			
-		script += "\nprint '>> Scimitar submission script complete. Jobs may still be running.'\n"
+		script += "\nprint '>> Scimitar submission script complete.'\n"
 		return script
