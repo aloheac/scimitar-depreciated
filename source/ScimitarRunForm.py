@@ -12,9 +12,10 @@
 ####################################################################
 
 import wx
+import sys
 import wx.grid as wx_grid
 import wx.propgrid as wx_propgrid
-from os.path import isfile
+from os.path import isfile, dirname
 from os import linesep
 import ScimitarCore
 
@@ -78,6 +79,11 @@ class RunNotebook( wx.Notebook ):
         panelSingleMachineMPI = wx.Panel( RunForm.executionChoiceBook )
         panelPBSMPI = wx.Panel( RunForm.executionChoiceBook )
         
+        RunForm.executionChoiceBook.AddPage( panelSingleMachine, "Single Machine or Interactive Job (Recovery Enabled)")
+        RunForm.executionChoiceBook.AddPage( panelPBS, "PBS Scheduler on Cluster")
+        #RunForm.executionChoiceBook.AddPage( panelSingleMachineMPI, "Single Machine or Interactive Job using MPI")
+        #RunForm.executionChoiceBook.AddPage( panelPBSMPI, "PBS Scheduler on Cluster using MPI")
+        
         # SINGLE MACHINE SETTINGS
         RunForm.propertyGridSingleMachine = wx_propgrid.PropertyGrid( panelSingleMachine )
         sizerGridSingleMachine = wx.BoxSizer( wx.VERTICAL )
@@ -89,10 +95,6 @@ class RunNotebook( wx.Notebook ):
         RunForm.propertyGridSingleMachine.Append( wx_propgrid.PropertyCategory( "Additional Commands" ) )
         RunForm.propertyGridSingleMachine.Append( wx_propgrid.LongStringProperty( "Additional pre-execution commands", "additionalPreExecutionCommands", RunForm.run.availableModules.SingleMachineResourceManager.additionalPreExecutionCommands ) )
         RunForm.propertyGridSingleMachine.Append( wx_propgrid.LongStringProperty( "Additional post-execution commands", "additionalPostExecutionCommands", RunForm.run.availableModules.SingleMachineResourceManager.additionalPostExecutionCommands ) )
-        RunForm.executionChoiceBook.AddPage( panelSingleMachine, "Single Machine or Interactive Job (Recovery Enabled)")
-        RunForm.executionChoiceBook.AddPage( panelPBS, "PBS Scheduler on Cluster")
-        #RunForm.executionChoiceBook.AddPage( panelSingleMachineMPI, "Single Machine or Interactive Job using MPI")
-        #RunForm.executionChoiceBook.AddPage( panelPBSMPI, "PBS Scheduler on Cluster using MPI")
         
         # PBS SETTINGS
         RunForm.propertyGridPBS = wx_propgrid.PropertyGrid( panelPBS )
@@ -173,11 +175,18 @@ class ScimitarRunForm( wx.Frame ):
         toolbar = self.CreateToolBar( wx.TB_TEXT )
         
         # Get icon images.
+        # Get the base directory depending on whether we are running in a normal Python
+        # environment or in a pyinstaller package.
+        if getattr( sys, 'frozen', False ):
+        	basedir = sys._MEIPASS
+        else:
+        	basedir = dirname(__file__)
+        	
         toolbarIconSize = (21, 21)
-        reportCard_bmp = wx.Bitmap('resources/reportCard.png') #wx.ArtProvider.GetBitmap(wx.ART_REPORT_VIEW, wx.ART_TOOLBAR, toolbarIconSize)
-        createScript_bmp = wx.Bitmap('resources/createScript.png') #wx.ArtProvider.GetBitmap(wx.ART_EXECUTABLE_FILE, wx.ART_TOOLBAR, toolbarIconSize)
-        save_bmp = wx.Bitmap('resources/save.png')#wx.ArtProvider.GetBitmap(wx.ART_FILE_SAVE, wx.ART_OTHER, toolbarIconSize)
-        saveAs_bmp = wx.Bitmap('resources/saveAs.png')#wx.ArtProvider.GetBitmap(wx.ART_COPY, wx.ART_OTHER, toolbarIconSize)
+        reportCard_bmp = wx.Bitmap( basedir + '/resources/reportCard.png') #wx.ArtProvider.GetBitmap(wx.ART_REPORT_VIEW, wx.ART_TOOLBAR, toolbarIconSize)
+        createScript_bmp = wx.Bitmap( basedir + '/resources/createScript.png') #wx.ArtProvider.GetBitmap(wx.ART_EXECUTABLE_FILE, wx.ART_TOOLBAR, toolbarIconSize)
+        save_bmp = wx.Bitmap( basedir + '/resources/save.png')#wx.ArtProvider.GetBitmap(wx.ART_FILE_SAVE, wx.ART_OTHER, toolbarIconSize)
+        saveAs_bmp = wx.Bitmap( basedir + '/resources/saveAs.png')#wx.ArtProvider.GetBitmap(wx.ART_COPY, wx.ART_OTHER, toolbarIconSize)
                                             
         toolbar_save = toolbar.AddLabelTool( wx.ID_ANY, "Save", save_bmp, shortHelp="Save the run to file." )
         toolbar_saveAs = toolbar.AddLabelTool( wx.ID_ANY, "Save As", saveAs_bmp, shortHelp="Save the run under a different filename." )

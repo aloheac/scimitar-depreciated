@@ -12,6 +12,8 @@
 ####################################################################
 
 import wx
+from os import path
+import sys
 import wx.richtext as wx_richtext
 from time import strftime
 import ScimitarCore
@@ -108,11 +110,19 @@ class ScimitarMainForm( wx.Frame ):
 		toolbarIconSize = ( 24, 24 )
 		
 		# Get icon images.
-		newRun_bmp = wx.Bitmap('resources/new.png') #wx.ArtProvider.GetBitmap(wx.ART_NEW, wx.ART_TOOLBAR, toolbarIconSize)
-		openRun_bmp = wx.Bitmap('resources/open.png') #wx.ArtProvider.GetBitmap(wx.ART_FILE_OPEN, wx.ART_TOOLBAR, toolbarIconSize)
-		close_bmp = wx.Bitmap('resources/exit.png') #wx.ArtProvider.GetBitmap(wx.ART_QUIT, wx.ART_OTHER, toolbarIconSize)
-		help_bmp = wx.Bitmap('resources/help.png') #wx.ArtProvider.GetBitmap(wx.ART_HELP, wx.ART_TOOLBAR, toolbarIconSize)
-		import_bmp = wx.Bitmap('resources/import.png')
+		# Identify the absolute path of the images, whether we are running the script in
+		# a normal Python environment or if we are in a frozen state (running in an 
+		# executable bundled by pyinstaller).
+		if getattr( sys, 'frozen', False ):
+			basedir = sys._MEIPASS
+		else:
+			basedir = path.dirname(__file__)
+			
+		newRun_bmp = wx.Bitmap( basedir + '/resources/new.png' ) #wx.ArtProvider.GetBitmap(wx.ART_NEW, wx.ART_TOOLBAR, toolbarIconSize)
+		openRun_bmp = wx.Bitmap( basedir + '/resources/open.png' ) #wx.ArtProvider.GetBitmap(wx.ART_FILE_OPEN, wx.ART_TOOLBAR, toolbarIconSize)
+		close_bmp = wx.Bitmap( basedir + '/resources/exit.png' ) #wx.ArtProvider.GetBitmap(wx.ART_QUIT, wx.ART_OTHER, toolbarIconSize)
+		help_bmp = wx.Bitmap( basedir + '/resources/help.png' ) #wx.ArtProvider.GetBitmap(wx.ART_HELP, wx.ART_TOOLBAR, toolbarIconSize)
+		import_bmp = wx.Bitmap( basedir + '/resources/import.png' )
 
 		toolbar_newRun = toolbar.AddLabelTool( wx.ID_ANY, "New Run", newRun_bmp, shortHelp = "Create a new run file." )
 		toolbar_openRun = toolbar.AddLabelTool( wx.ID_ANY, "Open Run", openRun_bmp, shortHelp = "Open an existing run file." )
@@ -193,8 +203,14 @@ Research supported by the U.S. National Science
 Foundation under Grant No. PHY1306520 and Graduate
 Research Fellowship Program under Grant No. DGE1144081."""
 		
+		# Get base path for Scimitar logo.
+		if getattr( sys, 'frozen', False ):
+			basedir = sys._MEIPASS
+		else:
+			basedir = path.dirname(__file__)
+			
 		info = wx.AboutDialogInfo()
-		info.SetIcon( wx.Icon( './resources/scimitar.png', wx.BITMAP_TYPE_PNG ) )
+		info.SetIcon( wx.Icon( basedir + '/resources/scimitar.png', wx.BITMAP_TYPE_PNG ) )
 		info.SetName('Scimitar')
 		info.SetVersion('6.0 alpha (Dec 2014)')
 		info.SetDescription( description )
