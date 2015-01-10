@@ -115,7 +115,93 @@ Basic ParameterGrid that inherits from wx.grid.Grid.
 class ParameterGrid( wx_grid.Grid ):
     def __init__(self, parent ):
         wx_grid.Grid.__init__( self, parent, size=(100, 100) )
-        
+        self.Bind(wx_grid.EVT_GRID_LABEL_RIGHT_CLICK, self.OnLabelRightClick)
+
+    def OnLabelRightClick(self, event):
+        if event.GetRow() < 0:
+            event.Skip
+        else:
+            # Define Menu Options for Label Right Click on Row 1+ 
+            menu = wx.Menu()
+            menuNewRow = menu.Append(wx.NewId(), "&Insert Row")
+            menuDeleteRow = menu.Append(wx.NewId(), "&Delete Row(s)")
+            menuCopyRow = menu.Append(wx.NewId(), "&Copy Row(s)")
+            menuPasteRow = menu.Append(wx.NewId(), "&Paste Row(s)")
+            menuClearRow = menu.Append(wx.NewId(), "&Clear Row(s)")
+
+            # Bind Menu options to functions
+            self.Bind(wx.EVT_MENU, lambda evt: self.onNewRow(evt, event.GetRow()), menuNewRow)
+            self.Bind(wx.EVT_MENU, lambda evt: self.onDeleteRow(evt, event.GetRow()), menuDeleteRow)
+            self.Bind(wx.EVT_MENU, lambda evt: self.onCopyRow(evt, event.GetRow()), menuCopyRow)
+            self.Bind(wx.EVT_MENU, lambda evt: self.onPasteRow(evt, event.GetRow()), menuPasteRow)
+            self.Bind(wx.EVT_MENU, lambda evt: self.onClearRow(evt, event.GetRow()), menuClearRow)
+
+            self.PopupMenu(menu, event.GetPosition())
+            menu.Destroy()
+
+    def onNewRow(self, event, rowNumber):
+        self.InsertRows(rowNumber + 1)
+        for j in range(self.GetNumberCols()):
+            self.SetCellValue(rowNumber + 1, j, "--")
+
+    def onDeleteRow(self, event, rowNumber):
+        selection = self.GetSelectedRows()
+        if selection:
+            for row in reversed(selection):
+                self.DeleteRows(row)
+        else:
+            self.DeleteRows(rowNumber)
+
+    def onCopyRow(self, event, rowNumber):
+        clipdata = wx.TextDataObject()
+        clipValueString = ""
+        selection = self.GetSelectedRows()
+        if selection:
+            for row in selection:
+                col = 0
+                while col < self.GetNumberCols():
+                    clipValueString += self.GetCellValue(row, col) + "\t"
+                    col += 1
+                clipValueString += "\r"
+        else:
+            col = 0
+            while col < self.GetNumberCols():
+                clipValueString += self.GetCellValue(rowNumber, col) + "\t"
+                col += 1
+        clipdata.SetText(clipValueString)
+        wx.TheClipboard.Open()
+        wx.TheClipboard.SetData(clipdata)
+        wx.TheClipboard.Close()
+
+    def onPasteRow(self, event, rowNumber):
+        if not wx.TheClipboard.IsOpened():
+            wx.TheClipboard.Open()
+            clipValueString = wx.TextDataObject()
+            success = wx.TheClipboard.GetData(clipValueString)
+            wx.TheClipboard.Close()
+            if success:
+                stringrows = clipValueString.GetText().split('\r')
+                for row in stringrows:
+                    if row == '':
+                        break
+                    stringItems = row.split('\t')
+                    col = 0
+                    while col <  self.GetNumberCols():
+                        self.SetCellValue(rowNumber, col, stringItems[col])
+                        col += 1
+                    rowNumber += 1
+
+    def onClearRow(self, event, rowNumber):
+        selection = self.GetSelectedRows()
+        if selection:
+            for row in selection:
+                for j in range(self.GetNumberCols()):
+                    self.SetCellValue(row, j, "--")
+        else:
+            for j in range(self.GetNumberCols()):
+                self.SetCellValue(rowNumber, j, "--")
+
+
 """
 Form definition for the Scimitar Run Editor.
 """
