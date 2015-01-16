@@ -34,7 +34,7 @@ class RunNotebook( wx.Notebook ):
 
         # ***** PARAMETER GRID TAB *****
         parameterGridSizer = wx.BoxSizer( wx.HORIZONTAL )
-        RunForm.speciesGrid = ParameterGrid( parameterGridPanel )
+        RunForm.speciesGrid = ParameterGrid( parameterGridPanel, RunForm.run )
         parameterGridSizer.Add( RunForm.speciesGrid, 1, wx.EXPAND )
         parameterGridPanel.SetSizerAndFit( parameterGridSizer )
 
@@ -113,10 +113,14 @@ class RunNotebook( wx.Notebook ):
 Basic ParameterGrid that inherits from wx.grid.Grid.
 """
 class ParameterGrid( wx_grid.Grid ):
-    def __init__(self, parent ):
+    def __init__(self, parent, run ):
         wx_grid.Grid.__init__( self, parent, size=(100, 100) )
         self.Bind(wx_grid.EVT_GRID_LABEL_RIGHT_CLICK, self.OnLabelRightClick)
-
+        self.run = run  # Get reference to the run from the current ScimitarRunForm object.
+    
+    """
+    Event Handler: Display the context menu when a row label is right-clicked.
+    """
     def OnLabelRightClick(self, event):
         if event.GetRow() < 0:
             event.Skip
@@ -130,7 +134,7 @@ class ParameterGrid( wx_grid.Grid ):
             menuClearRow = menu.Append(wx.NewId(), "&Clear Row(s)")
 
             # Bind Menu options to functions
-            self.Bind(wx.EVT_MENU, lambda evt: self.onNewRow(evt, event.GetRow()), menuNewRow)
+            self.Bind(wx.EVT_MENU, lambda evt: self.onAddRow(evt, event.GetRow()), menuNewRow)
             self.Bind(wx.EVT_MENU, lambda evt: self.onDeleteRow(evt, event.GetRow()), menuDeleteRow)
             self.Bind(wx.EVT_MENU, lambda evt: self.onCopyRow(evt, event.GetRow()), menuCopyRow)
             self.Bind(wx.EVT_MENU, lambda evt: self.onPasteRow(evt, event.GetRow()), menuPasteRow)
@@ -139,19 +143,34 @@ class ParameterGrid( wx_grid.Grid ):
             self.PopupMenu(menu, event.GetPosition())
             menu.Destroy()
 
-    def onNewRow(self, event, rowNumber):
-        self.InsertRows(rowNumber + 1)
-        for j in range(self.GetNumberCols()):
-            self.SetCellValue(rowNumber + 1, j, "--")
+    """
+    Event Handler: Add a row to the parameter grid in the run form and the ScimitarSpecies
+    parameter grid.
+    """
+    def onAddRow( self, evtAddRow, rowNumber ):
+        self.run.species.addRow( rowNumber )
+        self.InsertRows( rowNumber )
+        for i in range( 0, self.run.species.numColumns ):
+            self.SetCellValue( rowNumber, i, '--' )
 
+    """
+    Event Handler: Delete a row from the parameter grid in the run for and the
+    ScimitarSpecies parameter grid.
+    """
     def onDeleteRow(self, event, rowNumber):
         selection = self.GetSelectedRows()
         if selection:
             for row in reversed(selection):
                 self.DeleteRows(row)
+                self.run.species.deleteRow( row )
         else:
             self.DeleteRows(rowNumber)
+            self.run.species.deleteRow( rowNumber )
 
+    """
+    Event Handler: Copy a row from the parameter grid in the run into the
+    clipboard.
+    """
     def onCopyRow(self, event, rowNumber):
         clipdata = wx.TextDataObject()
         clipValueString = ""
@@ -173,6 +192,9 @@ class ParameterGrid( wx_grid.Grid ):
         wx.TheClipboard.SetData(clipdata)
         wx.TheClipboard.Close()
 
+    """
+    Event Handler: Paste a row from the clipboard into the parameter grid.
+    """
     def onPasteRow(self, event, rowNumber):
         if not wx.TheClipboard.IsOpened():
             wx.TheClipboard.Open()
@@ -188,18 +210,25 @@ class ParameterGrid( wx_grid.Grid ):
                     col = 0
                     while col <  self.GetNumberCols():
                         self.SetCellValue(rowNumber, col, stringItems[col])
+                        self.run.species.setElement(rowNumber, col, stringItems[col])
                         col += 1
                     rowNumber += 1
 
+    """
+    Event Handler: Clear a row (replace all row elements with the default empty
+    string.
+    """
     def onClearRow(self, event, rowNumber):
         selection = self.GetSelectedRows()
         if selection:
             for row in selection:
                 for j in range(self.GetNumberCols()):
                     self.SetCellValue(row, j, "--")
+                    self.run.species.setElement(row, j, "--")
         else:
             for j in range(self.GetNumberCols()):
                 self.SetCellValue(rowNumber, j, "--")
+                self.run.species.setElement(rowNumber, j, "--")
 
 
 """
@@ -238,7 +267,6 @@ class ScimitarRunForm( wx.Frame ):
         self.Bind( wx_propgrid.EVT_PG_CHANGED, self.onUpdateRunParameterGrid, self.runPropertiesGrid )
         self.Bind( wx_propgrid.EVT_PG_CHANGED, self.onUpdateSingleMachineParameterGrid, self.propertyGridSingleMachine )
         self.Bind( wx_propgrid.EVT_PG_CHANGED, self.onUpdatePBSParameterGrid, self.propertyGridPBS )
-        self.speciesGrid.Bind( wx_grid.EVT_GRID_CELL_RIGHT_CLICK, self.onShowGridContextMenu )
         self.Bind( wx.EVT_CHOICEBOOK_PAGE_CHANGED, self.onResourceManagerSelectionChanged, self.executionChoiceBook )
         
     def InitializeUI(self, gridRows, gridColumns ):
@@ -466,40 +494,10 @@ class ScimitarRunForm( wx.Frame ):
 			self.Close()
         else:
         	self.MainLog.WriteLogInformation("This is a new run file. All modules are already the latest versions.")
-        
+      
     """
-    Event Handler: Show the context menu that allows one to add or delete rows from the 
-    parameter grid.
+    Event Handler: Update the active resource manager when the selection is changed.
     """
-    def onShowGridContextMenu(self, evt):
-        self.contextMenu = wx.Menu()
-        menuItem_AddRow = wx.MenuItem( self.contextMenu, wx.ID_ANY, "Add Row")
-        menuItem_DeleteRow = wx.MenuItem( self.contextMenu, wx.ID_ANY, "Delete Row")
-        self.contextMenu.AppendItem( menuItem_AddRow )
-        self.contextMenu.AppendItem( menuItem_DeleteRow )
-        self.Bind(wx.EVT_MENU, lambda evtAddRow: self.onAddRow( evtAddRow, evt.GetRow() ), menuItem_AddRow )
-        self.Bind(wx.EVT_MENU, lambda evtDeleteRow: self.onDeleteRow( evtDeleteRow, evt.GetRow() ), menuItem_DeleteRow )
-        self.PopupMenu( self.contextMenu )
-        self.contextMenu.Destroy()
-
-	"""
-	Event Handler: Add a row to the parameter grid in the run form and the ScimitarSpecies
-	parameter grid.
-	"""
-    def onAddRow( self, evtAddRow, rowNumber ):
-        self.run.species.addRow( rowNumber )
-        self.speciesGrid.InsertRows( rowNumber )
-        for i in range( 0, self.run.species.numColumns ):
-            self.speciesGrid.SetCellValue( rowNumber, i, '--' )
-
-	"""
-	Event Handler: Delete a row from the parameter grid in the run for and the
-	ScimitarSpecies parameter grid.
-	"""
-    def onDeleteRow( self, evtDeleteRow, rowNumber ):
-        self.run.species.deleteRow( rowNumber )
-        self.speciesGrid.DeleteRows( rowNumber )
-        
     def onResourceManagerSelectionChanged( self, evt ):
     	if evt.GetSelection() == 0:
     		self.run.activeResourceManager = self.run.availableModules.SingleMachineResourceManager
