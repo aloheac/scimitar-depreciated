@@ -226,6 +226,7 @@ class ParameterGrid( wx_grid.Grid ):
         else:
             self.resetRow(rowNumber)
 
+    # General function to reset a single row to "--"
     def resetRow(self, rowNumber):
        for i in range(self.GetNumberCols()):
            self.SetCellValue(rowNumber, i, "--")
@@ -516,11 +517,16 @@ class ScimitarRunForm( wx.Frame ):
     	elif evt.GetSelection() == 1:
     		self.run.activeResourceManager = self.run.availableModules.PBSResourceManager
 
+    # Event Handler for import in grid menu:
+    # Leverages existing import functionality in ScimitarForm.py
+    # Destroy RunForm window -> call Import event handler
 
     def onImport(self, evt):
         self.Destroy()
         self.parent.onImport(None) 
 
+    # Event Handler for resize grid in grid menu
+    # Adds/Removes rows at the bottom of the grid as needed 
     def onSize(self, evt):
         message = "New Size"
         current_size = str(self.speciesGrid.GetNumberRows())
@@ -544,6 +550,8 @@ class ScimitarRunForm( wx.Frame ):
                 self.run.species.deleteRow(i-1)
             
 
+    # Event Handler for clear grid in grid menu
+    # Resets all cells to "--" 
     def onClear(self, evt):
         for i in self.speciesGrid.GetNumberRows():
             self.speciesGrid.resetRow(i)
