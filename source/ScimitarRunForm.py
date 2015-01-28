@@ -6,7 +6,7 @@
 # Version 6.0
 # 16 December 2014
 #
-# Joaquin E. Drut, Andrew C. Loheac
+# Joaquin E. Drut, Andrew C. Loheac, Dhruv K. Mittal
 # Department of Physics and Astronomy
 # University of North Carolina at Chapel Hill
 ####################################################################
@@ -222,13 +222,14 @@ class ParameterGrid( wx_grid.Grid ):
         selection = self.GetSelectedRows()
         if selection:
             for row in selection:
-                for j in range(self.GetNumberCols()):
-                    self.SetCellValue(row, j, "--")
-                    self.run.species.setElement(row, j, "--")
+                self.resetRow(row)
         else:
-            for j in range(self.GetNumberCols()):
-                self.SetCellValue(rowNumber, j, "--")
-                self.run.species.setElement(rowNumber, j, "--")
+            self.resetRow(rowNumber)
+
+    def resetRow(self, rowNumber):
+       for i in range(self.GetNumberCols()):
+           self.SetCellValue(rowNumber, i, "--")
+           self.run.species.setElement(rowNumber, i, "--")
 
 
 """
@@ -238,6 +239,7 @@ class ScimitarRunForm( wx.Frame ):
     def __init__(self, parent, run, runPath ):
         wx.Frame.__init__(self, parent, -1, 'Scimitar Run Editor', size=(600,500) )
         
+        self.parent = parent
         self.MainLog = parent.log
         self.run = run
         self.speciesGrid = None  # Parameter grid will be initialized upon UI initialization.
@@ -277,10 +279,20 @@ class ScimitarRunForm( wx.Frame ):
         menuFile_SaveAs = menuFile.Append( wx.ID_ANY, "&Save Run As...")
         menuFile_UpdateModules = menuFile.Append( wx.ID_ANY, "Update Modules")
         menuBar.Append( menuFile, "&File" )
+
+        menuGrid = wx.Menu()
+        menuGrid_Import = menuGrid.Append(wx.ID_ANY, "&Import")
+        menuGrid_Size = menuGrid.Append( wx.ID_ANY, "&Set Grid Size")
+        menuGrid_Clear = menuGrid.Append( wx.ID_ANY, "&Clear Grid") 
+        menuBar.Append(menuGrid, "&Grid") 
         
         self.Bind( wx.EVT_MENU, self.onSaveRun, menuFile_Save )
         self.Bind( wx.EVT_MENU, self.onSaveAsRun, menuFile_SaveAs )
         self.Bind( wx.EVT_MENU, self.onUpdateModules, menuFile_UpdateModules )
+
+        self.Bind( wx.EVT_MENU, self.onImport, menuGrid_Import)
+        self.Bind( wx.EVT_MENU, self.onSize, menuGrid_Size)
+        self.Bind( wx.EVT_MENU, self.onClear, menuGrid_Clear)
         
         self.SetMenuBar( menuBar )
         # ***** END OF MENU BAR *****
@@ -503,3 +515,36 @@ class ScimitarRunForm( wx.Frame ):
     		self.run.activeResourceManager = self.run.availableModules.SingleMachineResourceManager
     	elif evt.GetSelection() == 1:
     		self.run.activeResourceManager = self.run.availableModules.PBSResourceManager
+
+
+    def onImport(self, evt):
+        self.Destroy()
+        self.parent.onImport(None) 
+
+    def onSize(self, evt):
+        message = "New Size"
+        current_size = str(self.speciesGrid.GetNumberRows())
+        dlg = wx.TextEntryDialog(self, message, defaultValue=current_size)
+        dlg.ShowModal()
+        new_row_size = dlg.GetValue()
+        dlg.Destroy()
+        
+        i_current = int(current_size)
+        i_new = int(new_row_size)
+
+        if i_new > i_current:
+            self.speciesGrid.AppendRows(i_new - i_current, True)
+            for i in range(i_current, i_new):
+                self.run.species.addRow(i-1)
+            for i in range(i_current, i_new):
+                self.speciesGrid.resetRow(i)
+        elif i_new < i_current:
+            self.speciesGrid.DeleteRows(i_new, i_current - i_new, True)
+            for i in range(i_current, i_new, -1):
+                self.run.species.deleteRow(i-1)
+            
+
+    def onClear(self, evt):
+        for i in self.speciesGrid.GetNumberRows():
+            self.speciesGrid.resetRow(i)
+
