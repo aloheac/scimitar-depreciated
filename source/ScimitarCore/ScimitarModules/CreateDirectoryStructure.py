@@ -6,7 +6,7 @@
 # Version 6.0
 # 13 December 2014
 #
-# Joaquin E. Drut, Andrew C. Loheac
+# Joaquin E. Drut, Andrew C. Loheac, Dhruv K. Mittal
 # Department of Physics and Astronomy
 # University of North Carolina at Chapel Hill
 ####################################################################
@@ -41,7 +41,7 @@ class CreateDirectoryStructure( PreExecutionModule ):
 		contribution += "	run = run.split('/')\n"
 		contribution +=	"	splitRuns = []\n"
 		contribution += "	for r in run:\n"
-                contribution += "		splitRuns.append( '_'.join(r.split('_')[0:-1]) )\n"
+		contribution += "		splitRuns.append( '_'.join(r.split('_') )\n"
 		contribution += "		inputFile = ''\n"	
 		contribution += "		for i in range( 0, len( parameterList ) ):\n"
 		contribution += "			valueToAdd = ''\n"
