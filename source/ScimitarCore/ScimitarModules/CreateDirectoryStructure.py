@@ -39,9 +39,10 @@ class CreateDirectoryStructure( PreExecutionModule ):
 		# Private function for generating input file for a run.
 		contribution += "def _createInputFileForRun( run, parameterList, valueList ):\n"
 		contribution += "	run = run.split('/')\n"
-		contribution +=	"	splitRuns = []\n"
+		contribution += "	splitRuns = []\n"
 		contribution += "	for r in run:\n"
-		contribution += "		splitRuns.append( '_'.join(r.split('_') )\n"
+		contribution += "		rs = r.split('_')\n"
+		contribution += "		splitRuns.append(['_'.join(rs[0:-1]), rs[-1]])\n"
 		contribution += "		inputFile = ''\n"	
 		contribution += "		for i in range( 0, len( parameterList ) ):\n"
 		contribution += "			valueToAdd = ''\n"
