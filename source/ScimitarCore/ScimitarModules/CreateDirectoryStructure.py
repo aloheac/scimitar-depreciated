@@ -41,7 +41,7 @@ class CreateDirectoryStructure( PreExecutionModule ):
 		contribution += "	run = run.split('/')\n"
 		contribution +=	"	splitRuns = []\n"
 		contribution += "	for r in run:\n"
-		contribution += "		splitRuns.append( r.split('_') )\n"
+                contribution += "		splitRuns.append( '_'.join(r.split('_')[0:-1]) )\n"
 		contribution += "		inputFile = ''\n"	
 		contribution += "		for i in range( 0, len( parameterList ) ):\n"
 		contribution += "			valueToAdd = ''\n"
