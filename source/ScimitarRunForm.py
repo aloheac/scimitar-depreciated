@@ -528,7 +528,7 @@ class ScimitarRunForm( wx.Frame ):
     # Event Handler for resize grid in grid menu
     # Adds/Removes rows at the bottom of the grid as needed 
     def onSize(self, evt):
-        message = "New Size"
+        message = "Specify the new number of rows in the grid:"
         current_size = str(self.speciesGrid.GetNumberRows())
         dlg = wx.TextEntryDialog(self, message, defaultValue=current_size)
         dlg.ShowModal()
@@ -553,6 +553,6 @@ class ScimitarRunForm( wx.Frame ):
     # Event Handler for clear grid in grid menu
     # Resets all cells to "--" 
     def onClear(self, evt):
-        for i in self.speciesGrid.GetNumberRows():
+        for i in range( 0, self.speciesGrid.GetNumberRows() ):
             self.speciesGrid.resetRow(i)
 
