@@ -6,7 +6,7 @@
 # Version 6.0
 # 10 December 2014
 #
-# Joaquin E. Drut, Andrew C. Loheac
+# Joaquin E. Drut, Andrew C. Loheac, Dhruv K. Mittal
 # Department of Physics and Astronomy
 # University of North Carolina at Chapel Hill
 ####################################################################
@@ -66,6 +66,23 @@ def _expandValues( value, valueType ):
 				allValues.append( minimum )
 				minimum += step
 		return allValues
+	if valueType == "file":
+		try:
+			[filename, columnNumber]=  value.split(":")
+			allValues = []
+			f = open(filename)
+			for line in f.readlines():
+				s = line.split("\t")
+				if len(s) >= int(columnNumber) - 1:
+					allValues.append(s[int(columnNumber) - 1])
+		except IOError:
+			#File is wrong
+			pass
+		except IndexError:
+		#Column is wrong
+			pass
+		return allValues
+
 
 """
 Check if a range value is valid.
