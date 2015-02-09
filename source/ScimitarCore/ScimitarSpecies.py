@@ -74,7 +74,7 @@ def _expandValues( value, valueType ):
 			for line in f.readlines():
 				s = line.split("\t")
 				if len(s) >= int(columnNumber) - 1:
-					allValues.append(s[int(columnNumber) - 1])
+					allValues.append(s[int(columnNumber) - 1].rstrip('\n'))
 		except IOError:
 			#File is wrong
 			pass
