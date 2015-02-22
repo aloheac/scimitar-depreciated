@@ -58,8 +58,7 @@ class CreateDirectoryStructure( PreExecutionModule ):
 		contribution += "				inputFile += valueToAdd + '\t#' + parameterToAdd + '\\n'\n"
 		contribution +=	"	return inputFile\n\n"
 		
-		# Initialize parameters.
-		contribution += "runListing = " + str( self.run.species.generateRunListing() ) + "\n"
+		# Initialize parameters. Recall that the run listing is given as a global variable.
 		contribution += "parameterList = " + _getParameterList( self.run ) + "\n"
 		contribution += "valueList = " + _getValueList( self.run ) + "\n"
 		contribution += "initWorkingDir = os.path.dirname( os.path.abspath(__file__) )\n"

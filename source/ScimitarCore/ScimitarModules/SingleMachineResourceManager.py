@@ -33,8 +33,8 @@ class SingleMachineResourceManager( ResourceManagerModule ):
 		contribution += "from time import sleep\n"
 		contribution += "import os\n\n"
 		
-		# Initialized various variables and parameters.
-		contribution += "runListing = " + str( self.run.species.generateRunListing() ) + "\n"
+		# Initialized various variables and parameters. Note that the run
+		# listing is given as a global variable at the beginning of the script.
 		contribution += "jobCount = len( runListing )\n"
 		contribution += "jobID = -1\n"
 		contribution += "initialWorkingDir = os.path.dirname(os.path.abspath(__file__))\n\n"
@@ -66,7 +66,6 @@ class SingleMachineResourceManager( ResourceManagerModule ):
 		# While we are running at the maximum number of jobs, keep checking for when other
 		# jobs finish so we can launch another one.
 		contribution += "	while len( runningJobs ) >= " + str( self.numSimRuns ) + ":\n"
-		contribution += "		runningJobs.append( proc )\n"
 		contribution += "		for process in runningJobs:\n"
 		contribution += "			if process.poll() != None:\n"
 		contribution += "				runningJobs.remove( process )\n"

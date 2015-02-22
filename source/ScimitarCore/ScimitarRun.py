@@ -154,6 +154,10 @@ class ScimitarRun:
 		# Start with an empty script.
 		script = ""
 
+		# Copy the run listing into the top of the script as a global variable. Individual
+		# modules should reference this global variable directly.
+		script += "runListing = " + str( self.species.generateRunListing() ) + "\n"
+		
 		# Sort the execution modules by priority.
 		_sortModuleList( self.activePreExecutionModules )
 		_sortModuleList( self.activePostExecutionModules )

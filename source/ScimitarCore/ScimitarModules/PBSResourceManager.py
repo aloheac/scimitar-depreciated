@@ -31,7 +31,6 @@ class PBSResourceManager( ResourceManagerModule ):
 		contribution += "from subprocess import Popen\n"
 		contribution += "from time import sleep\n"
 		contribution += "import os\n\n"
-		contribution += "runListing = " + str( self.run.species.generateRunListing() ) + "\n"
 		contribution += "jobCount = len( runListing )\n"
 		contribution += "jobID = 0\n"
 		contribution += "initialWorkingDir = os.path.dirname(os.path.abspath(__file__))\n\n"
