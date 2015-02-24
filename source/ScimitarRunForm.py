@@ -464,7 +464,7 @@ class ScimitarRunForm( wx.Frame ):
     	if evt.GetProperty().GetName() == "numNodes":
     		self.run.availableModules.PBSResourceManager.numNodes = evt.GetProperty().GetValue()
     	elif evt.GetProperty().GetName() == "processorsPerNode":
-    		self.run.availableModules.PBSResourceManager.processorsPerNodes = evt.GetProperty().GetValue()
+    		self.run.availableModules.PBSResourceManager.processorsPerNode = evt.GetProperty().GetValue()
     	elif evt.GetProperty().GetName() == "walltime":
     		self.run.availableModules.PBSResourceManager.walltime = evt.GetProperty().GetValue()
     	elif evt.GetProperty().GetName() == "additionalPreExecutionCommands":
