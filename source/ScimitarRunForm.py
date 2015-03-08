@@ -243,6 +243,7 @@ class ScimitarRunForm( wx.Frame ):
         self.parent = parent
         self.MainLog = parent.log
         self.run = run
+        self.runStateModified = False  # Flag that is set to true if the run was modified using the UI. The user will be prompted to save the file if this is True.
         self.speciesGrid = None  # Parameter grid will be initialized upon UI initialization.
         self.runPath = runPath # Should be initialized if a run was opened from file.
         
@@ -273,6 +274,8 @@ class ScimitarRunForm( wx.Frame ):
         self.Bind( wx.EVT_CHOICEBOOK_PAGE_CHANGED, self.onResourceManagerSelectionChanged, self.executionChoiceBook )
         
     def InitializeUI(self, gridRows, gridColumns ):
+        self.Bind( wx.EVT_CLOSE, self.onClose )
+        
         # ***** MENU BAR *****
         menuBar = wx.MenuBar()
         menuFile = wx.Menu()
@@ -371,30 +374,33 @@ class ScimitarRunForm( wx.Frame ):
     	self.MainLog.WriteLogText("Done! The script is located at '" + self.run.runSettings.scriptFilename + "'.")
         
     """
-    Event Handler: 'Save as' run.
+    Event Handler: 'Save as' run. Returns True if file was saved, False if the user cancels the dialog box.
     """
     def onSaveAsRun(self, evt):
         saveFileDialog = wx.FileDialog( self, "Save Scimitar Run", "", "", "Scimitar Run files (*.srn)|*.srn", wx.FD_SAVE|wx.FD_OVERWRITE_PROMPT )
         if saveFileDialog.ShowModal() == wx.ID_CANCEL:
-            return  # File is not to be saved.
+            return False # File is not to be saved.
         
         ScimitarCore.writeRunToFile(self.run, saveFileDialog.GetPath())
         self.runPath = saveFileDialog.GetPath()
+        self.runStateModified = False
         self.MainLog.WriteLogText("Run file '" + str( saveFileDialog.GetPath() ) + "' saved as.")
+        return True
     
     """
-    Event Handler: Save run.
+    Event Handler: Save run. Returns True if file was actually saved, False if it was not.
     """
     def onSaveRun(self, evt):
         if self.runPath == None:
-            self.onSaveAsRun( evt )
-            return
+            return self.onSaveAsRun( evt )
         
         if isfile( self.runPath ):
             ScimitarCore.writeRunToFile( self.run, self.runPath )
+            self.runStateModified = False
             self.MainLog.WriteLogText("Run file '" + str( self.runPath ) + "' saved.")
+            return True
         else:
-            self.onSaveAsRun( evt )
+            return self.onSaveAsRun( evt )
     
     """
     Event Handler: Update ScimitarSpecies parameter grid when an entry in the parameter
@@ -402,6 +408,7 @@ class ScimitarRunForm( wx.Frame ):
     """        
     def onParameterGridChanged(self, evt):
         # Save parameter grid to the run.
+        self.runStateModified = True
         for i in range( 0, self.run.species.numRows ):
             for j in range( 0, self.run.species.numColumns ):
                 self.run.species.setElement( i, j, str( self.speciesGrid.GetCellValue( i, j ) ) )
@@ -411,6 +418,7 @@ class ScimitarRunForm( wx.Frame ):
     updated.
     """
     def onUpdateRunParameterGrid(self, evt):
+        self.runStateModified = True
         if evt.GetProperty().GetName() == "scriptFilename":
             self.run.runSettings.scriptFilename = evt.GetProperty().GetValue()
         elif evt.GetProperty().GetName() == "scriptLocation":
@@ -451,6 +459,7 @@ class ScimitarRunForm( wx.Frame ):
     respective parameter grid is updated.
     """     
     def onUpdateSingleMachineParameterGrid(self, evt):
+        self.runStateModified = True
         if evt.GetProperty().GetName() == "numSimRuns":
             self.run.availableModules.SingleMachineResourceManager.numSimRuns = evt.GetProperty().GetValue()
         elif evt.GetProperty().GetName() == "procCheckWaitTime":
@@ -461,6 +470,7 @@ class ScimitarRunForm( wx.Frame ):
         	self.run.availableModules.SingleMachineResourceManager.additionalPostExecutionCommands = self._fixUnicodeResult( evt.GetProperty().GetValue() )
     
     def onUpdatePBSParameterGrid(self, evt):
+        self.runStateModified = True
     	if evt.GetProperty().GetName() == "numNodes":
     		self.run.availableModules.PBSResourceManager.numNodes = evt.GetProperty().GetValue()
     	elif evt.GetProperty().GetName() == "processorsPerNode":
@@ -512,6 +522,7 @@ class ScimitarRunForm( wx.Frame ):
     Event Handler: Update the active resource manager when the selection is changed.
     """
     def onResourceManagerSelectionChanged( self, evt ):
+        self.runStateModified = True
     	if evt.GetSelection() == 0:
     		self.run.activeResourceManager = self.run.availableModules.SingleMachineResourceManager
     	elif evt.GetSelection() == 1:
@@ -528,6 +539,7 @@ class ScimitarRunForm( wx.Frame ):
     # Event Handler for resize grid in grid menu
     # Adds/Removes rows at the bottom of the grid as needed 
     def onSize(self, evt):
+        self.runStateModified = True
         message = "Specify the new number of rows in the grid:"
         current_size = str(self.speciesGrid.GetNumberRows())
         dlg = wx.TextEntryDialog(self, message, defaultValue=current_size)
@@ -553,6 +565,26 @@ class ScimitarRunForm( wx.Frame ):
     # Event Handler for clear grid in grid menu
     # Resets all cells to "--" 
     def onClear(self, evt):
+        self.runStateModified = True
         for i in range( 0, self.speciesGrid.GetNumberRows() ):
             self.speciesGrid.resetRow(i)
-
+            
+    """
+    Event Handler: Checks if user needs to be prompted to save the run file
+    before exiting.
+    """
+    def onClose(self, evt):
+        closeDialog = wx.MessageDialog(self, "Do you want to save changes to the run file?", "Confirm Exit", wx.YES_NO|wx.ICON_QUESTION )
+        
+        if self.runStateModified == True:
+            dialogResult = closeDialog.ShowModal()
+            closeDialog.Destroy()
+            
+            if dialogResult == wx.ID_NO:
+                self.Destroy()
+            else:
+                saveResult = self.onSaveRun( evt )
+                if saveResult == True:  # Close the form only if the file was actually saved.
+                    self.Destroy()
+        else:
+            self.Destroy()
