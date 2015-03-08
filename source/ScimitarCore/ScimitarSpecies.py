@@ -90,7 +90,7 @@ def _expandRange( range ):
 		minimum = float( splitRange.split(':')[0] )
 		step = float( splitRange.split(':')[1] )
 		maximum = float( splitRange.split(':')[2] )
-		while minimum <= maximum:
+		while minimum <= maximum + FORCE_ZERO_THRESHOLD:
 			# NOTE: When iterating over values that go from being negative to
 			# positive, a value of zero will be given as machine epsilon instead
 			# (i.e. 1e-17) instead. To correct this, if the difference between the
