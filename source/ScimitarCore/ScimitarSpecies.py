@@ -58,20 +58,24 @@ def _expandValues( value, valueType ):
 		return allValues  # Return the completed list.
 				
 	if valueType == "file":
+		# Granted, an assertion is that the file and column number are valid but
+		# place this in a try block anyway.
 		try:
-			[filename, columnNumber]=  value.split(":")
+			[ filename, columnNumber ]=  value.split(":")
 			allValues = []
-			f = open(filename)
+			f = open( filename )
 			for line in f.readlines():
 				s = line.split("\t")
-				if len(s) >= int(columnNumber) - 1:
-					allValues.append(s[int(columnNumber) - 1].rstrip('\n'))
+				if len( s ) >= int( columnNumber ) - 1:
+					allValues.append( s[int( columnNumber ) - 1].rstrip('\n') )
 		except IOError:
-			#File is wrong
-			pass
+			# File does not exist or cannot be read.
+			raise ScimitarGridError( "ERROR: External file '" + str( value ) + "' cannot be read." )
+		
 		except IndexError:
-		#Column is wrong
-			pass
+			# Column number is not valid.
+			raise ScimitarGridError( "ERROR: File column number given in '" + str( value )  + "' is not valid." )
+		
 		return allValues
 
 """
@@ -256,7 +260,30 @@ class ScimitarSpecies:
 								raise ScimitarGridError( "Value '" + value + "' in row " + str( i ) + " is not a valid range or list of ranges and numerical values." )
 				
 				elif dataType.strip() == "file":
-					pass
+					# Check if filename and column number are given in the correct format.
+					if not len( value.split(":") ) == 2:
+						raise ScimitarGridError( "Value for an external file in line " + str( i ) + " must be given in the format [filename]:[column number]." )
+					
+					[ filename, columnNumber ] =  value.split(":")
+					try:
+						int( columnNumber )
+					except ValueError:
+						raise ScimitarGridError( "External file column number '" + str( columnNumber ) + "' in line " + str( i ) + " is not a valid integer." )
+					
+					# Check if file can be opened and that the given column is accessible.
+					try:
+						f = open( filename )
+						for line in f.readlines():
+							s = line.split("\t")
+							if not len( s ) > int( columnNumber ):
+								raise ScimitarGridError( "File column number given in '" + str( value )  + "' is not valid." )
+					except IOError:
+						# File does not exist or cannot be read.
+						raise ScimitarGridError( "External file '" + str( value ) + "' cannot be read." )
+		
+					except IndexError:
+						# Column number is not valid.
+						raise ScimitarGridError( "File column number given in '" + str( value )  + "' is not valid." )
 				
 				elif dataType.strip() == "function":
 					pass
