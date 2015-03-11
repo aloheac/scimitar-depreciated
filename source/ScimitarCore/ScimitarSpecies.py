@@ -39,25 +39,37 @@ class ScimitarSpeciesError( Exception ):
 """
 Given a value entered into the grid, return a list of the expanded structure (i.e.
 expand all ranges and functions).
+
+value: Value to be expanded.
+valueType: Data type of the value as supported by Scimitar.
 """
 # ASSERTION: All values are valid and of the matching type.	
 def _expandValues( value, valueType ):
-	if valueType == "int" or valueType == "real":
+	if valueType == "int":
 		# Something could be a list: 1,2,3,4.
-		return value.split(',')
-	if valueType == "range":
 		# Ranges can be a list of ranges, or a mix of a list of ranges and single values.
 		allValues = []
 		for valueElement in value.split(','):
 			if _isValidRange( valueElement ): # If the element is a range, expand it and add it to the list.
-				expandedRange = _expandRange( valueElement )
+				expandedRange = _expandRange( valueElement, 'int' )  # _expandRange() handles casting to either a float or int.
+				for value in expandedRange: # Append each value in the range to the list.
+					allValues.append( value )
+			else: # If the element is just a single value, append it to the list.
+				allValues.append( int( valueElement ) )
+		return allValues  # Return the completed list.
+	
+	elif valueType == "real":
+		allValues = []
+		for valueElement in value.split(','):
+			if _isValidRange( valueElement ): # If the element is a range, expand it and add it to the list.
+				expandedRange = _expandRange( valueElement, 'real' )  # _expandRange() handles casting to either a float or int.
 				for value in expandedRange: # Append each value in the range to the list.
 					allValues.append( value )
 			else: # If the element is just a single value, append it to the list.
 				allValues.append( float( valueElement ) )
 		return allValues  # Return the completed list.
-				
-	if valueType == "file":
+	
+	elif valueType == "file":
 		# Granted, an assertion is that the file and column number are valid but
 		# place this in a try block anyway.
 		try:
@@ -68,6 +80,7 @@ def _expandValues( value, valueType ):
 				s = line.split("\t")
 				if len( s ) >= int( columnNumber ) - 1:
 					allValues.append( s[int( columnNumber ) - 1].rstrip('\n') )
+					
 		except IOError:
 			# File does not exist or cannot be read.
 			raise ScimitarGridError( "ERROR: External file '" + str( value ) + "' cannot be read." )
@@ -80,8 +93,12 @@ def _expandValues( value, valueType ):
 
 """
 Expand a range into a list of the values it represents.
+
+range: Range to be expanded.
+valueType: Data type of the range, either 'real' or 'int'.
 """
-def _expandRange( range ):
+def _expandRange( range, valueType ):
+	# If the range that was passed in is not valid, raise an exception.
 	if not _isValidRange( range ):
 		raise ScimitarSpeciesError( "ERROR: Attempted to expand invalid range." )
 		
@@ -90,20 +107,34 @@ def _expandRange( range ):
 	allValues = []	
 	# Something could be a list of ranges: 1:0.5:3,5:0.1:7.
 	splitRanges = range.split(',')
-	for splitRange in splitRanges:
-		minimum = float( splitRange.split(':')[0] )
-		step = float( splitRange.split(':')[1] )
-		maximum = float( splitRange.split(':')[2] )
-		while minimum <= maximum + FORCE_ZERO_THRESHOLD:
-			# NOTE: When iterating over values that go from being negative to
-			# positive, a value of zero will be given as machine epsilon instead
-			# (i.e. 1e-17) instead. To correct this, if the difference between the
-			# calculated step and zero is less then a threshold, force the value to
-			# be 0.0.
-			if abs( minimum ) < FORCE_ZERO_THRESHOLD:
-				minimum = 0.0
-			allValues.append( minimum )
-			minimum += step
+	if valueType == 'real':  # Cast to a float.
+		for splitRange in splitRanges:
+			minimum = float( splitRange.split(':')[0] )
+			step = float( splitRange.split(':')[1] )
+			maximum = float( splitRange.split(':')[2] )
+			while minimum <= maximum + FORCE_ZERO_THRESHOLD:
+				# NOTE: When iterating over values that go from being negative to
+				# positive, a value of zero will be given as machine epsilon instead
+				# (i.e. 1e-17) instead. To correct this, if the difference between the
+				# calculated step and zero is less then a threshold, force the value to
+				# be 0.0.
+				if abs( minimum ) < FORCE_ZERO_THRESHOLD:
+					minimum = 0.0
+				allValues.append( minimum )
+				minimum += step
+					
+	elif valueType == 'int':  # Cast to an int.
+		for splitRange in splitRanges:
+			minimum = int( splitRange.split(':')[0] )
+			step = int( splitRange.split(':')[1] )
+			maximum = int( splitRange.split(':')[2] )
+			while minimum <= maximum:
+				allValues.append( minimum )
+				minimum += step
+	else:  # If the data type is not a 'real' or 'int', raise an exception.
+		# It is asserted that the grid is valid and correct before this function is called.
+		raise ScimitarGridError( "An invalid data type was passed to _expandRange()." )
+					
 	return allValues
 	
 """
@@ -220,7 +251,7 @@ class ScimitarSpecies:
 					raise ScimitarGridError( "Variable name in row " + str( i ) + " cannot contain backslashes." )
 					
 			# Check that all data types are valid types.
-			validDataTypes = [ "int", "real", "range", "string", "file", "function" ]
+			validDataTypes = [ "int", "real", "string", "file", "function" ]
 			for i in range( 0, self.numRows ):
 				element = self.getElement( i, 1 )
 				if element not in validDataTypes:
@@ -235,29 +266,19 @@ class ScimitarSpecies:
 					try:
 						allValues = _expandValues( value, "int" )
 						for val in allValues:
-							int( val )
+							if not _isValidRange( str( val ) ):
+								int( val )
 					except ValueError:
-						raise ScimitarGridError( "Value '" + value + "' in row " + str( i ) + " is not a valid int." )
+						raise ScimitarGridError( "Value '" + value + "' in row " + str( i ) + " is not a valid int, list, or range." )
 					
 				elif dataType.strip() == "real":
 					try:
 						allValues = _expandValues( value, "real" )
 						for val in allValues:
-							float( val )
+							if not _isValidRange( str( val ) ):
+								int( val )
 					except ValueError:
-						raise ScimitarGridError( "Value '" + value + "' in row " + str( i ) + " is not a valid real." )
-					
-				elif dataType.strip() == "range":
-					# Note that a range can be a list of ranges, or a combination of a list of values and ranges.
-					splitRange = value.split(',')
-					
-					# For each value in the given list, check that it is either a valid range or a valid float.
-					for valueElement in splitRange:
-						if not _isValidRange( valueElement ):
-							try:
-								float( valueElement )
-							except ValueError:
-								raise ScimitarGridError( "Value '" + value + "' in row " + str( i ) + " is not a valid range or list of ranges and numerical values." )
+						raise ScimitarGridError( "Value '" + value + "' in row " + str( i ) + " is not a valid real, list, or range." )
 				
 				elif dataType.strip() == "file":
 					# Check if filename and column number are given in the correct format.
