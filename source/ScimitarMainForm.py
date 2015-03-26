@@ -18,6 +18,7 @@ import wx.richtext as wx_richtext
 from time import strftime
 import ScimitarCore
 from ScimitarRunForm import *
+from ScimitarHelpBrowser import *
 
 MENU_ID_OPEN_RUN = 100
 MENU_ID_NEW_RUN = 101
@@ -142,6 +143,7 @@ class ScimitarMainForm( wx.Frame ):
 		self.Bind( wx.EVT_TOOL, self.onOpenRun, toolbar_openRun )
 		self.Bind( wx.EVT_TOOL, self.onExit, toolbar_exit )
 		self.Bind( wx.EVT_TOOL, self.onImport, toolbar_import ) 
+		self.Bind( wx.EVT_TOOL, self.onShowHelp, toolbar_help )
 		# ***** END OF EVENT BINDINGS *****
 		
 		# ***** MAIN PANEL *****
@@ -262,4 +264,7 @@ Research Fellowship Program under Grant No. DGE1144081."""
 		# Show the run editor with the new species generated from the import.
 		newRunEditor = ScimitarRunForm( self, ScimitarCore.ScimitarRun( newSpecies ), None )
 		self.log.WriteLogText("Creating a new run from imported file.")
+		
+	def onShowHelp(self, evt):
+		ScimitarHelpBrowser( self )
 		
