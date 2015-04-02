@@ -20,6 +20,6 @@ class HeaderModule( PreExecutionModule ):
 	def getScriptContribution( self ):
 		contribution  = "print '***************************************'\n"
 		contribution += "print '* Scimitar Execution Script'\n"
-		contribution += "print '* Version 6.0'\n"
+		contribution += "print '* Version 6.0.1 beta (Apr 2015)'\n"
 		contribution += "print '***************************************'\n"
 		return contribution

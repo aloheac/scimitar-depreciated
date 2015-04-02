@@ -17,10 +17,230 @@ img.centered {
 h1, h2 {
   text-align:center;    
 }
+    
+div.boxed {
+  border: 1px solid black;
+  margin: 10px;
+  padding: 5px;
+  width: 500px;
+  font-family: monospace;
+}
 </style>
 <img class="centered" src="scimitar.png" alt="Scimitar logo." align="center" width="100" height="100">
 <h1>Scimitar User Documentation</h1>
-<h2>Version 6.0.1 alpha (Mar 2015)</h2>
+<h2>Version 6.0.1 beta (Apr 2015)</h2>
     
-This documentation must be written from the currently available PDF documentation.
+<h2>What is Scimitar?</h2>
+Scimitar is an visual application designed for large parameter-space exploration
+of numerical simulations in the physical sciences. This software is designed to
+work with custom numerical simulation applications which accepts a given set
+of parameters as input to produce some result. Scimitar automates the process
+of configuring, organizing, executing, and monitoring a large number of runs
+on single machine or a large computing cluster which iterate over one or more
+parameters. In the broadest sense, Scimitar takes an \embarrassingly parallel"
+approach by using an allocated set of computing resources and simultaneously
+executing many lightly-threaded instances of a simulation at once. In practice,
+Scimitar's goal is to automatically generate a Python script which will easily
+execute an instance of a program for each combination of selected parameters in
+a highly organized fashion, which simplifies data reduction and post-processing.
+Once configured to your computing environment, for a given run Scimitar will
+<ul>
+    <li>compile your program from source, if requested,</li>
+    <li>create a directory tree for all combinations of given parameters,</li>
+    <li>generate a parameter inpute file for each instance of a run,</li>
+    <li>and submit jobs to a PBS cluster or execute jobs on a single machine.</li>
+</ul>
+Scimitar is an application developed by the group of Joaquin E. Drut in the
+Department of Physics and Astronomy at the University of North Carolina at
+Chapel Hill. Its development is supported in part by the U.S. National Science
+Foundation under Grant No. PHY1306520 and under the Graduate Research
+Fellowship Program under Grant No. DGE1144081.
+    
+<h2>System Requirements</h2>
+The Scimitar application will run on any modern Linux distribution, Mac OS X,
+and Windows 7/8, but the generated scripts are designed to work only with Lin-
+ux/UNIX operating systems. Scimitar binaries provided by the research group
+does not require any external dependencies; all libraries are compiled within the
+executable. If running Scimitar from source, the following dependencies must
+also be installed:
+<ul>
+    <li>Python 2.7+</li>
+    <li>wxPython 3.0 or greater</li>
+</ul>
+    
+<h2>Configuring a Run</h2>
+<h3>Parameter Grid</h3>
+The parameter grid configures the set of parameters, their types, and values
+that will be passed to the executed program. The grid contains four columns:
+<ul>
+    <li><b>Parameter:</b> The unique name of a parameter to be passed to the exe-
+cuting program. The parameter name must begin with a letter and must
+not contain any spaces or backslashes.</li>
+    <li><b>Type:</b> The type of the parameter. Details about supported types are
+given below.</li>
+    <li><b>Value(s):</b> The values that the parameter will take. If only a single value
+is given, all runs will execute with this same value. If multiple values are
+given, whether in the form of a list or range, a run will execute for each
+combination of values.</li>
+    <li><b>Directory Order:</b> Specifies the order in which multiple parameters will
+be nested within the generated directory structure. These values are consecutive 
+integers beginning with 1, and each value must be unique. At
+least one parameter must have a directory order entered.</li>
+</ul>
+<h3>Supported Data Types</h3>
+There are multiple data types supported by Scimitar which are entered into the
+'Type' column of the parameter grid. These types and a description of each are
+<ul>
+    <li><tt>int</tt>: An integer (as specified in the Python implementation). Integers
+may also be given as a list of values (i.e. 1,2,3).</li>
+    <li><tt>real</tt>: A 
+oating-point number (as specified in the Python implementation as a float). 
+Reals may also be given as a list of values (i.e. 2.7,3.14,7.34,6.3).</li>
+    <li><tt>string</tt>: A string of text enclosed in quotes (i.e. "Hello, world!").</li>
+</ul>
+The data types <tt>range</tt> and <tt>int</tt> may also be given as a 
+multi-valued type which gives a range of values from a minimum to
+a maximum, in intervals of a given step size. The syntax for a range is
+min:step size:max. For example, to iterate over values that begin at 1.0
+and and at 5.0 in steps of 0.2, enter 1.0:0.2:5.0. All values in a range
+are handled as floating-point numbers.
+<h3>Global Run Properties</h3>
+    The second panel of the <i>Scimitar Run Editor</i>, <i>Run Configuration</i> sets a variety
+of basic settings that are global to all modules, independent of the selected
+resource manager. Listed below are the available settings, a description of each
+and any key points to note.
+<ul>
+    <li><b>Script filename:</b> The filename of the script that will be generated by
+the run. Note that this script is a standard Python 2.x script, and should
+have a .py file extension.</li>
+    <li><b>Script output location:</b> The local directory that Scimitar should save
+the script to. This directory is independent of the script execution location.</li>
+    <li><b>Run notes:</b> A space to enter any personal information about a run.</li>
+    <li><b>Output filename:</b> The file that each executable will redirect STDOUT and
+STDERR to. Note that Scimitar overwrites any existing file, and does not
+append to it by default.</li>
+    <li><b>Executable filename:</b> The name of the executable file that will be called by the Scimitar script.</li>
+    <li><b>Input filename:</b> Filename of the parameter input file that will be piped
+into the executable or passed as an argument to the executable (see '<i>Disable input redirection</i>' ). 
+This input file is automatically generated by Scimitar, and uses Scimitar's standardized input format.</li>
+    <li><b>Source path:</b> Path to the source files of the executable or a path to a
+copy of the executable if the program will not be recompiled from source.</li>
+    <li><b>Compile executable from source:</b> Scimitar will first recompile the ex-
+ecutable from source using the Makefile provided in the source directory,
+if enabled.</li>
+    <li><b>Build directory structure:</b> Scimitar will build the run directory struc-
+ture for this run. Typically this should always be set to True unless a run
+has been changed and is being restarted.</li>
+    <li><b>Disable input redirection:</b> By default Scimitar passes in the set of
+parameters by redirecting the input to STDIN (i.e. if the executable is
+a.out the executable will be called with ./a.out < parameters.in). If
+this option is set to True, the name of the parameter file will be passed
+as an argument to the executable so the parameters can be loaded by
+the program alternatively. This can be handled easily using the included
+Scimitar C++ and Python libraries.</li>
+    <li><b>Generate check status script:</b> Generate check status script: If enabled, a Python script will be
+generated upon execution that will print out the last five lines of the
+output file of each run to the terminal. This is useful for checking the
+progress and validity of a run.</li>
+</ul>
+
+<h3>Configuring the Resource Manager</h3>
+A resource manager in Scimitar is the method by which the executable will
+be run; whether it is simply on a single machine or a submission to a PBS/-
+TORQUE managed cluster. The currently available resource managers are
+<ul>
+    <li><b>Single Machine or Interactive Job (Recovery Enabled):</b> This re-
+source manager should be used when running a job on a single machine
+or in an interactive job of a PBS managed cluster. This module is capable
+of restarting a run at the point where the last job completed should the
+Scimitar script be prematurely aborted. To restart a run, simply execute
+the Scimitar Python script again.</li>
+    <ul>
+        <li><b>Number of simultaneous runs:</b> The maximum number of runs
+that will execute at any given type. Typically this should not be the
+total number of cores available in a system. At least two cores should
+be left to handle file I/O and other operating system related tasks.</li>
+        <li><b>Process status check delay:</b> The frequency which the Scimitar
+Python script will check for completed runs, and start new ones if
+necessary. If this frequency is too high, the script may begin to utilize
+significant CPU resources.</li>
+        <li><b>Additional pre-execution commands:</b> Additional commands to
+be called before running the main executable. Note that multiple
+commands may easily be entered by launching the dialog box by
+clicking the button that appears on the right-hand side of the text
+box.</li>
+        <li><b>Additional post-execution commands:</b> Additional commands to
+be called after the main executable completes.</li>
+    </ul><br/>
+    <li><b>PBS Scheduler on Cluster:</b> This resource manager should be used when submitting all jobs to the PBS/TORQUE resource manager on a cluster.</li>
+    <ul>
+        <li><b>Number of nodes:</b> The numbe rof nodes that the resource manager should reserve for each executable. This corresponds to the <tt>nodes=</tt> parameter of the resource allocation in a PBS bash script.</li>
+        <li><b>Processors per node (ppn):</b> Number of processors the resource manager should reserve for each executable.</li>
+        <li><b>Walltime:</b> THe maximum amount of time the resource manager should allow the executable to run.</li>
+        <li><b>Additional pre-execution commands:</b> Additional commands to
+be called before running the main executable. Note that multiple
+commands may easily be entered by launching the dialog box by
+clicking the button that appears on the right-hand side of the text
+box.</li>
+        <li><b>Additional post-execution commands:</b> Additonal commands to be called after the main executable completes.</li>
+    </ul>
+</ul>
+    
+<h2>Executing a Run</h2>
+The execution script that Scimitar generates is a standard Python script that
+can be executed using Python 2.x. This file contains all of the information
+necessary to start a run, given that the executable and any necessary libraries are
+installed and configured on the system that will host the run. Simply copy the
+Python script to any empty directory and execute the script to start the run (i.e.
+<tt>python myscript.py</tt>). If submitting to a cluster, be sure the PBS/TORQUE
+scheduler is first loaded.
+
+<h2>Scimitar API Libraries</h2>
+Scimitar provides simple API libraries to easily load the generated parameter
+input files into your developed simulation or application. These libraries are
+currently provided for Python and C++, although the format of the input file
+is trivially adaptable for FORTRAN. The standard syntax for a parameter in
+the parameter file is <tt>value #parameter-name</tt> where each value/parameter
+pair is given on a single line.
+
+<h3>Python Implementation</h3>
+The following listing demonstrates typical usage of the library to import a parameter file:<br/>
+<div class="boxed">
+    parser = ScimitarInputParser()<br/>
+    parser.setFilename( "parameter.in" )<br/>
+    parser.loadParameters()<br/><br/>
+    
+    # Import parameter values using a dictionary.<br/>
+    params = parser.getDictionary()<br/>
+    alpha = int( params[ "alpha" ] )<br/>
+    beta = float( params[ "beta" ] )<br/>
+</div>
+    
+<h4>Public class methods:</h4>
+Constructor: <tt>ScimitarInputParser(filename="")</tt><br/>
+Arguments:<br/>
+    <ul>
+        <li><tt>filename</tt>: (string) Name of the Scimitar parameter file to load.</li>
+    </ul>
+<br/>
+
+<tt>loadParameters()</tt><br/>
+Loads the parameters from the specified input file into a dictionary where the parameter description (specified after the '<tt>#</tt>' in the input file) is paired with the parameter value.<br/><br/>
+
+<tt>getDictionary()</tt><br/>
+Returns a copy of the dictionary generated by the <tt>loadParameters()</tt> call.<br/><br/>
+
+<tt>getList()</tt><br/>
+Returns a copy of the list of parameters generated by the <tt>loadParameters()</tt> call.<br/><br/>
+    
+<tt>setFilename(filename)</tt><br/>
+Sets a new input filename.<br/>
+Arguments:<br/>
+    <ul>
+        <li><tt>filename</tt>: (string) Name of the Scimitar parameter file to load.</li>
+    </ul>
+<br/>
+    
+<h3>C++ Implementation</h3>
+A C++ implementation of the Scimitar API library is complete, but documentation for this library must still be written.
 </html>
