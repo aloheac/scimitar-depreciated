@@ -15,7 +15,7 @@
 # throws an exception for an undefined symbol. As such, we revert to wx.html
 # when building Scimitar on Linux. However, the html class does not support CSS.
 
-import wx.html2
+import wx.html
 import os.path
 import sys
 
@@ -25,7 +25,7 @@ class ScimitarHelpBrowser( wx.Frame ):
         
         self.mainPanel = wx.Panel( self )
         self.boxSizer = wx.BoxSizer( wx.HORIZONTAL )
-        self.helpBrowser = wx.html2.WebView.New( self.mainPanel )
+        self.helpBrowser = wx.html.HtmlWindow( self.mainPanel )
         self.boxSizer.Add( self.helpBrowser, 1, wx.ALL|wx.EXPAND, border=5 )
         self.mainPanel.SetSizerAndFit( self.boxSizer )
         
@@ -35,8 +35,8 @@ class ScimitarHelpBrowser( wx.Frame ):
             basedir = os.path.dirname(__file__)
         
         self.helpURL = basedir +  "/resources/ScimitarHelp.html"
-        self.helpBrowser.LoadURL( "file://" + self.helpURL )
-        self.helpBrowser.ClearHistory()
+        self.helpBrowser.LoadFile( self.helpURL )
+        self.helpBrowser.HistoryClear()
            
         browserToolbar = self.CreateToolBar( wx.TB_HORIZONTAL | wx.NO_BORDER | wx.TB_FLAT | wx.TB_TEXT )
         
@@ -60,14 +60,14 @@ class ScimitarHelpBrowser( wx.Frame ):
         self.Show()
         
     def onHomeButton( self, evt ):
-        self.helpBrowser.LoadURL( "file://" + self.helpURL )
+        self.helpBrowser.LoadFile( self.helpURL )
         
     def onForwardButton( self, evt ):
-        if self.helpBrowser.CanGoForward():
+        if self.helpBrowser.HistoryCanForward():
             self.helpBrowser.GoForward()
         
     def onBackButton(self, evt):
-        if self.helpBrowser.CanGoBack():
+        if self.helpBrowser.HistoryCanBack():
             self.helpBrowser.GoBack()
         
     def onCloseButton(self, evt):
