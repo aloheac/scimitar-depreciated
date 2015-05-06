@@ -19,6 +19,7 @@ from time import strftime
 import ScimitarCore
 from ScimitarRunForm import *
 from ScimitarHelpBrowser import *
+from ScimitarUncertaintyFormatterForm import *
 
 MENU_ID_OPEN_RUN = 100
 MENU_ID_NEW_RUN = 101
@@ -98,6 +99,10 @@ class ScimitarMainForm( wx.Frame ):
 		menuFile_Quit = menuFile.Append( wx.ID_EXIT, "&Quit" )
 		menuBar.Append( menuFile, "&File" )
 		
+		menuTools = wx.Menu()
+		menuTools_UncertaintyFormatter = menuTools.Append( wx.ID_ANY, "Uncertainty Formatter" )
+		menuBar.Append( menuTools, "&Tools" )
+		
 		menuHelp = wx.Menu()
 		menuHelp_About = menuHelp.Append( wx.ID_ABOUT, "&About Scimitar" )
 		menuBar.Append( menuHelp, "&Help" )
@@ -139,6 +144,7 @@ class ScimitarMainForm( wx.Frame ):
 		self.Bind( wx.EVT_MENU, self.onNewRun, menuFile_NewRun )
 		self.Bind( wx.EVT_MENU, self.onOpenRun, menuFile_OpenRun )
 		self.Bind( wx.EVT_MENU, self.onAboutBox, menuHelp_About )
+		self.Bind( wx.EVT_MENU, self.onShowUncertaintyFormatter, menuTools_UncertaintyFormatter )
 		self.Bind( wx.EVT_TOOL, self.onNewRun, toolbar_newRun )
 		self.Bind( wx.EVT_TOOL, self.onOpenRun, toolbar_openRun )
 		self.Bind( wx.EVT_TOOL, self.onExit, toolbar_exit )
@@ -267,4 +273,7 @@ Research Fellowship Program under Grant No. DGE1144081."""
 		
 	def onShowHelp(self, evt):
 		ScimitarHelpBrowser( self )
+		
+	def onShowUncertaintyFormatter(self, evt):
+		ScimitarUncertaintyFormatterForm( self )
 		
