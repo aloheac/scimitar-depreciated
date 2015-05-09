@@ -104,6 +104,7 @@ class ScimitarMainForm( wx.Frame ):
 		menuBar.Append( menuTools, "&Tools" )
 		
 		menuHelp = wx.Menu()
+		menuHelp_Docs = menuHelp.Append( wx.ID_ANY, "&Documentation")
 		menuHelp_About = menuHelp.Append( wx.ID_ABOUT, "&About Scimitar" )
 		menuBar.Append( menuHelp, "&Help" )
 		
@@ -144,6 +145,7 @@ class ScimitarMainForm( wx.Frame ):
 		self.Bind( wx.EVT_MENU, self.onNewRun, menuFile_NewRun )
 		self.Bind( wx.EVT_MENU, self.onOpenRun, menuFile_OpenRun )
 		self.Bind( wx.EVT_MENU, self.onAboutBox, menuHelp_About )
+		self.Bind( wx.EVT_MENU, self.onShowHelp, menuHelp_Docs )
 		self.Bind( wx.EVT_MENU, self.onShowUncertaintyFormatter, menuTools_UncertaintyFormatter )
 		self.Bind( wx.EVT_TOOL, self.onNewRun, toolbar_newRun )
 		self.Bind( wx.EVT_TOOL, self.onOpenRun, toolbar_openRun )
