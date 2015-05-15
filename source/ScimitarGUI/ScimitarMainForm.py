@@ -20,6 +20,7 @@ import ScimitarCore
 from ScimitarRunForm import *
 from ScimitarHelpBrowser import *
 from ScimitarUncertaintyFormatterForm import *
+from ScimitarAnalysisForm import *
 
 MENU_ID_OPEN_RUN = 100
 MENU_ID_NEW_RUN = 101
@@ -130,10 +131,12 @@ class ScimitarMainForm( wx.Frame ):
 		close_bmp = wx.Bitmap( basedir + '/resources/exit.png' ) #wx.ArtProvider.GetBitmap(wx.ART_QUIT, wx.ART_OTHER, toolbarIconSize)
 		help_bmp = wx.Bitmap( basedir + '/resources/help.png' ) #wx.ArtProvider.GetBitmap(wx.ART_HELP, wx.ART_TOOLBAR, toolbarIconSize)
 		import_bmp = wx.Bitmap( basedir + '/resources/import.png' )
-
+		analysis_bmp = wx.Bitmap( basedir + '/resources/analysis.png' )
+		
 		toolbar_newRun = toolbar.AddLabelTool( wx.ID_ANY, "New Run", newRun_bmp, shortHelp = "Create a new run file." )
 		toolbar_openRun = toolbar.AddLabelTool( wx.ID_ANY, "Open Run", openRun_bmp, shortHelp = "Open an existing run file." )
 		toolbar_import = toolbar.AddLabelTool( wx.ID_ANY, "Import", import_bmp, shortHelp="Import a set of parameters and values from a text file.")
+		toolbar_analysis = toolbar.AddLabelTool( wx.ID_ANY, "Analysis", analysis_bmp, shortHelp="Analyze data produced by a Scimitar run.")
 		toolbar_help = toolbar.AddLabelTool( 10, "Help", help_bmp, shortHelp = "Open the documentation for Scimitar." )
 		toolbar_exit = toolbar.AddLabelTool( wx.ID_ANY, "Quit", close_bmp, shortHelp = "Quit Scimitar." )
 		
@@ -152,6 +155,7 @@ class ScimitarMainForm( wx.Frame ):
 		self.Bind( wx.EVT_TOOL, self.onExit, toolbar_exit )
 		self.Bind( wx.EVT_TOOL, self.onImport, toolbar_import ) 
 		self.Bind( wx.EVT_TOOL, self.onShowHelp, toolbar_help )
+		self.Bind( wx.EVT_TOOL, self.onShowAnalysisForm, toolbar_analysis )
 		# ***** END OF EVENT BINDINGS *****
 		
 		# ***** MAIN PANEL *****
@@ -278,4 +282,7 @@ Research Fellowship Program under Grant No. DGE1144081."""
 		
 	def onShowUncertaintyFormatter(self, evt):
 		ScimitarUncertaintyFormatterForm( self )
+		
+	def onShowAnalysisForm(self, evt):
+		ScimitarAnalysisForm( self )
 		

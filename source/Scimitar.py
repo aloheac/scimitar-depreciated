@@ -15,11 +15,11 @@
 ####################################################################
 
 import wx
-from ScimitarMainForm import *
+import ScimitarGUI
 
 # Generate the main Scimitar GUI window.
 app = wx.App()
-mainScimitarForm = ScimitarMainForm()
+mainScimitarForm = ScimitarGUI.ScimitarMainForm()
 mainScimitarForm.Show()
 
 app.MainLoop()
