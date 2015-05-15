@@ -12,6 +12,8 @@
 ###################################################################
 
 import wx
+import sys
+from os import path
 
 """
 Formats a measurement given a value and its uncertainty.
@@ -54,6 +56,13 @@ Class definition for the Uncertainty Formatter form.
 class ScimitarUncertaintyFormatterForm( wx.Frame ):
     def __init__(self, parent):
         wx.Frame.__init__( self, parent, title="Uncertainty Formatter" )
+        
+        if getattr( sys, 'frozen', False ):
+            basedir = sys._MEIPASS
+        else:
+            basedir = path.dirname(__file__)
+            
+        self.SetIcon( wx.Icon( basedir + '/resources/scimitar.ico' ) )
         
         self.mainPanel = wx.Panel( self )
         self.mainSizer = wx.GridBagSizer(3, 3)

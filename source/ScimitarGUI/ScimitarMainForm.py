@@ -143,6 +143,9 @@ class ScimitarMainForm( wx.Frame ):
 		toolbar.Realize()
 		# ***** END OF TOOLBAR *****
 		
+		# Set window icon.
+		self.SetIcon( wx.Icon( basedir + '/resources/scimitar.ico' ) )
+		
 		# ***** EVENT BINDINGS *****
 		self.Bind( wx.EVT_MENU, self.onExit, menuFile_Quit )
 		self.Bind( wx.EVT_MENU, self.onNewRun, menuFile_NewRun )

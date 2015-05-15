@@ -332,6 +332,9 @@ class ScimitarRunForm( wx.Frame ):
         self.Bind( wx.EVT_TOOL, self.onSaveRun, toolbar_save )                           
         # ***** END OF TOOLBAR *****
         
+        # Set window icon.
+        self.SetIcon( wx.Icon( basedir + '/resources/scimitar.ico' ) )
+        
         # Create main panel of the run editor.
         self.mainPanel = wx.Panel( self )
         runNB = RunNotebook( self, self.mainPanel )

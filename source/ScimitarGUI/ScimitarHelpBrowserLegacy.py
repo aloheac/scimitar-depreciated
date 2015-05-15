@@ -34,6 +34,9 @@ class ScimitarHelpBrowser( wx.Frame ):
         else:
             basedir = os.path.dirname(__file__)
         
+        # Set window icon.
+        self.SetIcon( wx.Icon( basedir + '/resources/scimitar.ico' ) )
+        
         self.helpURL = basedir +  "/resources/ScimitarHelp.html"
         self.helpBrowser.LoadFile( self.helpURL )
         self.helpBrowser.HistoryClear()
