@@ -13,6 +13,7 @@
 
 import wx
 import wx.lib.agw.aui as aui
+import wx.propgrid as wx_propgrid
 import sys
 from os import path
 
@@ -40,7 +41,7 @@ class ScimitarAnalysisForm( wx.Frame ):
         reportCard_bmp = wx.Bitmap( basedir + '/resources/reportCard.png' )
         execute_bmp = wx.Bitmap( basedir + '/resources/createScript.png' )
         
-        self.toolbar = wx.ToolBar( self, -1, wx.DefaultPosition, wx.DefaultSize, wx.TB_FLAT|wx.TB_NODIVIDER )
+        self.toolbar = wx.ToolBar( self, -1, wx.DefaultPosition, wx.DefaultSize, wx.TB_FLAT|wx.TB_NODIVIDER|wx.TB_TEXT )
         self.toolbar.SetToolBitmapSize(wx.Size(32,32))
         self.toolbar.AddLabelTool( wx.ID_ANY, "New", newAnalysis_bmp )
         self.toolbar.AddLabelTool( wx.ID_ANY, "Open", openAnalysis_bmp)
@@ -58,16 +59,37 @@ class ScimitarAnalysisForm( wx.Frame ):
         self.toolbar.Realize()
         
         self._mgr.AddPane( self.toolbar, aui.AuiPaneInfo().ToolbarPane().Top())
+        
         # Set up module tree.
         self.moduleTreeCtrl = wx.TreeCtrl( self, size=(150, 200) )
-        nodeRoot= self.moduleTreeCtrl.AddRoot( "Pipeline" )
+        nodeRoot = self.moduleTreeCtrl.AddRoot( "Pipeline" )
         nodeSettings = self.moduleTreeCtrl.AppendItem( nodeRoot, 'Settings')
         nodeActiveModules = self.moduleTreeCtrl.AppendItem( nodeRoot, 'Active')
         nodeInactiveModules = self.moduleTreeCtrl.AppendItem( nodeRoot, 'Inactive')
+        
+        self.moduleTreeCtrl.ExpandAll()
+        self.moduleTreeCtrl.SelectItem( nodeSettings )
+        
+        
+        # Setup main settings panel.
         self.mainSettingsPanel = wx.Panel( self )
+        settingsGridSizer = wx.BoxSizer( wx.HORIZONTAL )
+        self.settingsGrid = wx_propgrid.PropertyGrid( self.mainSettingsPanel, size=(300,300) )
+        settingsGridSizer.Add( self.settingsGrid, 1, wx.EXPAND )
+        self.mainSettingsPanel.SetSizerAndFit( settingsGridSizer )
+        
+        self.settingsGrid.Append( wx_propgrid.PropertyCategory( "Basic Analysis Settings" ) )
         
         # Add the panes to the window manager.
+        self.activeSettingsPanel = self.mainSettingsPanel
+        
         self._mgr.AddPane( self.moduleTreeCtrl, aui.AuiPaneInfo().Left().Caption("Analysis Modules") )
-        self._mgr.AddPane( self.mainSettingsPanel, aui.AuiPaneInfo().CenterPane().Caption("Module Configuration") )
+        self._mgr.AddPane( self.activeSettingsPanel, aui.AuiPaneInfo().CenterPane().Caption("Module Configuration") )
         self._mgr.Update()
+        
+        self.moduleTreeCtrl.ExpandAll()
+        self.moduleTreeCtrl.SelectItem( nodeSettings )
         self.Show()
+        
+        def onNewTreeItemSelected( self, evt ):
+            pass
