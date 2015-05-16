@@ -16,11 +16,16 @@ import wx.lib.agw.aui as aui
 import wx.propgrid as wx_propgrid
 import sys
 from os import path
+import AnalysisCore
 
 class ScimitarAnalysisForm( wx.Frame ):
     def __init__( self, parent ):
         wx.Frame.__init__( self, parent, title="Scimitar Data Analysis", size=(600, 400) )
         
+        # Set analysis pipeline associated with this form.
+        self.pipeline = AnalysisCore.AnalysisPipeline()
+        
+        # Set up AUI manager.
         self._mgr = aui.AuiManager()
         self._mgr.SetManagedWindow( self )
          
@@ -62,34 +67,102 @@ class ScimitarAnalysisForm( wx.Frame ):
         
         # Set up module tree.
         self.moduleTreeCtrl = wx.TreeCtrl( self, size=(150, 200) )
-        nodeRoot = self.moduleTreeCtrl.AddRoot( "Pipeline" )
-        nodeSettings = self.moduleTreeCtrl.AppendItem( nodeRoot, 'Settings')
-        nodeActiveModules = self.moduleTreeCtrl.AppendItem( nodeRoot, 'Active')
-        nodeInactiveModules = self.moduleTreeCtrl.AppendItem( nodeRoot, 'Inactive')
+        self.nodeRoot = self.moduleTreeCtrl.AddRoot( "Pipeline" )
+        self.nodeSettings = self.moduleTreeCtrl.AppendItem( self.nodeRoot, 'Settings')
+        self.nodeLoadData = self.moduleTreeCtrl.AppendItem( self.nodeRoot, 'Load Data')
+        self.nodeActiveModules = self.moduleTreeCtrl.AppendItem( self.nodeRoot, 'Active')
+        self.nodeInactiveModules = self.moduleTreeCtrl.AppendItem( self.nodeRoot, 'Inactive')
         
         self.moduleTreeCtrl.ExpandAll()
-        self.moduleTreeCtrl.SelectItem( nodeSettings )
+        self.moduleTreeCtrl.SelectItem( self.nodeSettings )
         
+        # Setup the AUI notebook for the main pane.
+        self.mainNotebook = aui.AuiNotebook( self )
+        self.mainSettingsTab = TabMainSettings( self.mainNotebook, self.pipeline )
+        self.loadDataTab = TabLoadData( self.mainNotebook, self.pipeline )
+        self.mainNotebook.AddPage( self.mainSettingsTab, "Main Settings" )
+        self.mainNotebook.AddPage( self.loadDataTab, "Load Data" )
         
-        # Setup main settings panel.
-        self.mainSettingsPanel = wx.Panel( self )
-        settingsGridSizer = wx.BoxSizer( wx.HORIZONTAL )
-        self.settingsGrid = wx_propgrid.PropertyGrid( self.mainSettingsPanel, size=(300,300) )
-        settingsGridSizer.Add( self.settingsGrid, 1, wx.EXPAND )
-        self.mainSettingsPanel.SetSizerAndFit( settingsGridSizer )
-        
-        self.settingsGrid.Append( wx_propgrid.PropertyCategory( "Basic Analysis Settings" ) )
-        
-        # Add the panes to the window manager.
-        self.activeSettingsPanel = self.mainSettingsPanel
-        
+        # Add bindings.
+        self.Bind( wx.EVT_TREE_ITEM_ACTIVATED, self.onTreeItemDoubleClicked, self.moduleTreeCtrl )
         self._mgr.AddPane( self.moduleTreeCtrl, aui.AuiPaneInfo().Left().Caption("Analysis Modules") )
-        self._mgr.AddPane( self.activeSettingsPanel, aui.AuiPaneInfo().CenterPane().Caption("Module Configuration") )
+        self._mgr.AddPane( self.mainNotebook, aui.AuiPaneInfo().CenterPane().Caption("Module Configuration") )
         self._mgr.Update()
         
         self.moduleTreeCtrl.ExpandAll()
-        self.moduleTreeCtrl.SelectItem( nodeSettings )
+        self.moduleTreeCtrl.SelectItem( self.nodeSettings )
         self.Show()
         
-        def onNewTreeItemSelected( self, evt ):
-            pass
+    def onTreeItemDoubleClicked( self, evt ):
+        if self.moduleTreeCtrl.GetFocusedItem() == self.nodeSettings:
+            self.mainSettingsTab = TabMainSettings( self.mainNotebook, self.pipeline )
+            self.mainNotebook.AddPage( self.mainSettingsTab, "Main Settings" )
+        elif self.moduleTreeCtrl.GetFocusedItem() == self.nodeLoadData:
+            self.loadDataTab = TabLoadData( self.mainNotebook, self.pipeline )
+            self.mainNotebook.AddPage( self.loadDataTab, "Load Data" )
+        
+class TabMainSettings( wx.Panel ):
+    def __init__( self, parent, pipeline ):
+        wx.Panel.__init__( self, parent=parent, id=wx.ID_ANY )
+        self.pipeline = pipeline 
+        
+        # Setup main settings panel.
+        settingsGridSizer = wx.BoxSizer( wx.HORIZONTAL )
+        self.settingsGrid = wx_propgrid.PropertyGrid( self, size=(300,300) )
+        settingsGridSizer.Add( self.settingsGrid, 1, wx.EXPAND )
+        self.SetSizerAndFit( settingsGridSizer )
+        
+        self.settingsGrid.Append( wx_propgrid.PropertyCategory( "Basic Analysis Settings" ) )
+        self.settingsGrid.Append( wx_propgrid.StringProperty( "Pipeline name", "pipelineName", self.pipeline.pipelineName ) )
+        self.settingsGrid.Append( wx_propgrid.DirProperty( "Data directory", "dataDirectory", self.pipeline.dataDirectory ) )
+        self.settingsGrid.Append( wx_propgrid.StringProperty( "Data filename", "dataFilename", self.pipeline.dataFilename ) )
+        
+        self.Bind( wx_propgrid.EVT_PG_CHANGED, self.onUpdateMainSettingsGrid, self.settingsGrid )
+        
+    def onUpdateMainSettingsGrid(self, evt):
+        if evt.GetProperty().GetName() == "pipelineName":
+            self.pipeline.pipelineName = evt.GetProperty().GetValue()
+        elif evt.GetProperty().GetName() == "dataDirectory":
+            self.pipeline.dataDirectory = evt.GetProperty().GetValue()
+        elif evt.GetProperty().GetName() == "dataFilename":
+            self.pipeline.dataFilename = evt.GetProperty().GetValue()
+                
+class TabLoadData( wx.Panel ):
+    def __init__( self, parent, pipeline ):
+        wx.Panel.__init__( self, parent=parent, id=wx.ID_ANY )
+        self.pipeline = pipeline
+        
+        allControlsSizer = wx.BoxSizer( wx.VERTICAL )
+        loadControlsSizer = wx.BoxSizer( wx.HORIZONTAL )
+        
+        # *** LOAD CONTROLS SIZER ***
+        # 'Load Data' button.
+        loadControlsSizer.Add( (7, 0) )
+        buttonLoadData = wx.Button( self, label="Load Data" )
+        loadControlsSizer.Add( buttonLoadData, 1 )
+        loadControlsSizer.Add( (7, 0) )
+        
+        # Run selection combo box.
+        self.runSelectionCboBox = wx.ComboBox( self )
+        loadControlsSizer.Add( self.runSelectionCboBox )
+        
+        allControlsSizer.Add( (0, 7) )
+        allControlsSizer.Add( loadControlsSizer )
+        
+        self.dataDisplayBox = wx.TextCtrl(self, style=wx.TE_MULTILINE )
+        allControlsSizer.Add( self.dataDisplayBox, 2, wx.EXPAND )
+        
+        self.SetSizerAndFit( allControlsSizer )
+        
+        self.Bind(wx.EVT_BUTTON, self.onLoadData, buttonLoadData )
+        self.Bind(wx.EVT_COMBOBOX, self.onRunSelected, self.runSelectionCboBox )
+        
+    def onLoadData(self, evt):
+        self.pipeline.loadRawData()
+        
+        self.runSelectionCboBox.Clear()
+        for i in range( 0, self.pipeline.numberOfRuns() ):
+            self.runSelectionCboBox.Append( "(" + str( i ) + ") " + self.pipeline.getRunPath( i ) )
+            
+    def onRunSelected(self, evt):
+        self.dataDisplayBox.SetValue( self.pipeline.rawData[ self.runSelectionCboBox.GetSelection() ] )

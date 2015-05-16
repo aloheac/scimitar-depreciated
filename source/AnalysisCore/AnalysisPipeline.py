@@ -14,7 +14,6 @@
 import AnalysisModules
 import os.path
 import os
-from mhlib import PATH
 
 class AnalysisPipelineError( Exception ):
     def __init__( self, value ):
@@ -140,16 +139,27 @@ class AnalysisPipeline:
         self.parameterValueList = []
         
     def checkPipeline( self ):
-            return False
+            for module in self.activePipeline:
+                module.checkModule()
         
     def executePipeline( self ):
-            return False
+            returnedData = self.rawData
+            for module in self.activePipeline:
+                module.executeModule( returnedData )
+                returnedData = module.getOutput()
+            return returnedData
         
     def activateModule( self, module ):
-            pass
+        self.activePipeline.append( module )
+        for i in range(0, len( self.inactiveModules ) ):
+                if self.inactiveModules[i] == module:
+                    del self.inactiveModules[i]
         
     def deactivateModule( self, module ):
-            pass
+        self.inactivePipeline.append( module )
+        for i in range(0, len( self.activePipeline ) ):
+            if self.activePipeline[i] == module:
+                    del self.activePipeline[i]   
         
     def loadRawData( self ):
         if not os.path.isdir( self.dataDirectory ):
@@ -159,6 +169,9 @@ class AnalysisPipeline:
         self.parameterValueList = _getTraversedParameterValues( self.dataDirectory )
             
         self.rawData = _getAllRawData( self.parameterNameList, self.parameterValueList, self.dataDirectory, self.dataFilename )
-                
-                
         
+    def numberOfRuns(self):
+        return _getTotalNumberOfRuns( self.parameterValueList )
+    
+    def getRunPath(self, runID):
+        return _getRunPath( runID, self.parameterNameList, self.parameterValueList )

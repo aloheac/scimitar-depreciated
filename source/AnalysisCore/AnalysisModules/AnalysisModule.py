@@ -20,7 +20,7 @@ class AnalysisModule():
         def checkModule():
             print "Analysis module check not implemented for module " + self.moduleName + "!"
             
-        def executeModule():
+        def executeModule( data ):
             print "Analysis module executon not implemented for module " + self.moduleName + "!"
         
         def getOutput():
