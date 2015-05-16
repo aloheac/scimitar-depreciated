@@ -18,9 +18,20 @@ class AnalysisModulePickerForm( wx.Dialog ):
     def __init__( self, parent ):
         wx.Dialog.__init__( self, parent, title="Analysis Module Picker", size=(200,300) )
         self.chosenModule = -1 
+        self.chosenClass = -1
         
         self.mainPanel = wx.Panel( self )
         self.mainSizer = wx.BoxSizer( wx.VERTICAL )
+        
+        self.mainSizer.Add( (0, 7) )
+        self.mainSizer.Add( wx.StaticText( self.mainPanel, label="  Add module to:" ) )
+        self.mainSizer.Add( (0, 7) )
+        
+        self.moduleClassChooser = wx.ComboBox( self.mainPanel )
+        self.moduleClassChooser.Append( "Reduction" )
+        self.moduleClassChooser.Append( "Active" )
+        self.moduleClassChooser.Append( "Inactive" )
+        self.mainSizer.Add( self.moduleClassChooser  )
         
         self.mainSizer.Add( (0, 7) )
         self.mainSizer.Add( wx.StaticText( self.mainPanel, label="  Select a module to add:" ) )
@@ -36,10 +47,12 @@ class AnalysisModulePickerForm( wx.Dialog ):
         self.Bind( wx.EVT_BUTTON, self.onSelectModule, selectModuleButton )
         
         self.moduleListBox.Append( "Reduction : Split Tabular Data" )
+        self.moduleListBox.Append( "Formatting : Strip QMC Header")
         
         self.moduleListBox.SetSelection( 0 )
         self.ShowModal()
         
     def onSelectModule(self, evt):
         self.chosenModule = self.moduleListBox.GetSelection()
+        self.chosenClass = self.moduleClassChooser.GetSelection()
         self.Close()

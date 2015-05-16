@@ -137,8 +137,9 @@ class AnalysisPipeline:
         self.pipelineName = "Default Pipeline"
         self.dataDirectory = "./"
         self.dataFilename = "logfile.out"
-        self.activePipeline = []
+        self.activeModules = []
         self.inactiveModules = []
+        self.reductionModules = []
         self.rawData = []
         self.parameterNameList = []
         self.parameterValueList = []
@@ -150,23 +151,43 @@ class AnalysisPipeline:
         
     def executePipeline( self ):
             returnedData = self.rawData
-            for module in self.activePipeline:
+            
+            for module in self.reductionModules:
+                for i in range(0, len( self.rawData ) ):
+                    module.executeModule( returnedData[i] )
+                    returnedData[i] = module.getOutput()
+                    
+            for module in self.activeModules:
                 module.executeModule( returnedData )
                 returnedData = module.getOutput()
+                
             return returnedData
+    
+    def addReductionModule( self, module ):
+        self.reductionModules.append( module )
+                       
+    def addActiveModule( self, module ):
+        self.activeModules.append( module )
         
-    def activateModule( self, module ):
-        self.activePipeline.append( module )
+    def addInactiveModule( self, module ):
+        self.inactiveModules.append( module )
+
+    def removeModule( self , module ):
+        for i in range(0, len( self.reductionModules ) ):
+            if self.reductionModules[i] == module:
+                    del self.reductionModules[i]   
+                    return
+                
+        for i in range(0, len( self.activeModules ) ):
+            if self.activeModules[i] == module:
+                    del self.activeModules[i]   
+                    return
+         
         for i in range(0, len( self.inactiveModules ) ):
-                if self.inactiveModules[i] == module:
-                    del self.inactiveModules[i]
-        
-    def deactivateModule( self, module ):
-        self.inactivePipeline.append( module )
-        for i in range(0, len( self.activePipeline ) ):
-            if self.activePipeline[i] == module:
-                    del self.activePipeline[i]   
-        
+            if self.inactiveModules[i] == module:
+                    del self.inactiveModules[i]   
+                    return
+                      
     def loadRawData( self ):
         if not os.path.isdir( self.dataDirectory ):
             raise AnalysisPipelineError( "Data directory '" + str( self.dataDirectory ) + "' does not exist." )   

@@ -60,8 +60,8 @@ class ScimitarAnalysisForm( wx.Frame ):
         self.toolbar.AddSeparator()
         toolAddModule = self.toolbar.AddLabelTool( wx.ID_ANY, "Add", add_bmp)
         toolRemoveModule = self.toolbar.AddLabelTool( wx.ID_ANY, "Remove", remove_bmp)
-        self.toolbar.AddLabelTool( wx.ID_ANY, "Up", up_bmp)
-        self.toolbar.AddLabelTool( wx.ID_ANY, "Down", down_bmp)
+        toolMoveModuleUp = self.toolbar.AddLabelTool( wx.ID_ANY, "Up", up_bmp)
+        toolMoveModuleDown = self.toolbar.AddLabelTool( wx.ID_ANY, "Down", down_bmp)
         self.toolbar.AddSeparator()
         self.toolbar.AddLabelTool( wx.ID_ANY, "Report Card", reportCard_bmp)
         self.toolbar.AddLabelTool( wx.ID_ANY, "Execute", execute_bmp)
@@ -73,10 +73,11 @@ class ScimitarAnalysisForm( wx.Frame ):
         # Set up module tree.
         self.moduleTreeCtrl = wx.TreeCtrl( self, size=(150, 200) )
         self.nodeRoot = self.moduleTreeCtrl.AddRoot( "Pipeline" )
-        self.nodeSettings = self.moduleTreeCtrl.AppendItem( self.nodeRoot, 'Settings')
-        self.nodeLoadData = self.moduleTreeCtrl.AppendItem( self.nodeRoot, 'Load Data')
-        self.nodeActiveModules = self.moduleTreeCtrl.AppendItem( self.nodeRoot, 'Active')
-        self.nodeInactiveModules = self.moduleTreeCtrl.AppendItem( self.nodeRoot, 'Inactive')
+        self.nodeSettings = self.moduleTreeCtrl.AppendItem( self.nodeRoot, 'Settings' )
+        self.nodeLoadData = self.moduleTreeCtrl.AppendItem( self.nodeRoot, 'Load Data' )
+        self.nodeReductionModules = self.moduleTreeCtrl.AppendItem( self.nodeRoot, 'Initial Reduction' )
+        self.nodeActiveModules = self.moduleTreeCtrl.AppendItem( self.nodeRoot, 'Active' )
+        self.nodeInactiveModules = self.moduleTreeCtrl.AppendItem( self.nodeRoot, 'Inactive' )
         
         self.moduleTreeCtrl.ExpandAll()
         self.moduleTreeCtrl.SelectItem( self.nodeSettings )
@@ -92,6 +93,9 @@ class ScimitarAnalysisForm( wx.Frame ):
         self.Bind( wx.EVT_TREE_ITEM_ACTIVATED, self.onTreeItemDoubleClicked, self.moduleTreeCtrl )
         self.Bind( wx.EVT_TOOL, self.onAddNewModule, toolAddModule )
         self.Bind( wx.EVT_TOOL, self.onRemoveModule, toolRemoveModule )
+        self.Bind( wx.EVT_TOOL, self.onMoveModuleUp, toolMoveModuleUp )
+        self.Bind( wx.EVT_TOOL, self.onMoveModuleDown, toolMoveModuleDown )
+        
         self._mgr.AddPane( self.moduleTreeCtrl, aui.AuiPaneInfo().Left().Caption("Analysis Modules") )
         self._mgr.AddPane( self.mainNotebook, aui.AuiPaneInfo().CenterPane().Caption("Module Configuration") )
         self._mgr.Update()
@@ -109,24 +113,133 @@ class ScimitarAnalysisForm( wx.Frame ):
             self.mainNotebook.AddPage( self.loadDataTab, "Load Data" )
             
     def onAddNewModule(self, evt):
+        self.pipeline._moduleID += 1
         picker = AnalysisModulePickerForm( self )
+        treeID = None
+        newModule = None
         
         if picker.chosenModule == 0:
-            self.pipeline._moduleID += 1
             newModule = AnalysisCore.AnalysisModules.SplitTabularDataModule()
-            self.pipeline.activateModule( newModule )
-            treeID = self.moduleTreeCtrl.AppendItem( self.nodeActiveModules, "Split Tabular Data" )
+        if picker.chosenModule == 1:
+            newModule = AnalysisCore.AnalysisModules.StripQMCHeaderModule()
+            
+        newModule.moduleID = self.pipeline._moduleID
+        
+        if picker.chosenClass == 0: # Reduction
+            self.pipeline.addReductionModule( newModule )
+            treeID = self.moduleTreeCtrl.AppendItem( self.nodeReductionModules, newModule.moduleName )
+            self.moduleTreeCtrl.SetPyData( treeID,  self.pipeline._moduleID )
+        elif picker.chosenClass == 1: # Active
+            self.pipeline.addActiveModule( newModule )
+            treeID = self.moduleTreeCtrl.AppendItem( self.nodeActiveModules, newModule.moduleName)
+            self.moduleTreeCtrl.SetPyData( treeID,  self.pipeline._moduleID )
+        elif picker.chosenClass == 2: # Inactive
+            self.pipeline.addInactiveModule( newModule )
+            treeID = self.moduleTreeCtrl.AppendItem( self.nodeInactiveModules, newModule.moduleName )
             self.moduleTreeCtrl.SetPyData( treeID,  self.pipeline._moduleID )
         
     def onRemoveModule(self, evt):
+        if (self.moduleTreeCtrl.GetFocusedItem() == self.nodeRoot) or (self.moduleTreeCtrl.GetFocusedItem() == self.nodeReductionModules) or (self.moduleTreeCtrl.GetFocusedItem() == self.nodeActiveModules) or (self.moduleTreeCtrl.GetFocusedItem() == self.nodeInactiveModules) or (self.moduleTreeCtrl.GetFocusedItem() == self.nodeLoadData) or (self.moduleTreeCtrl.GetFocusedItem() == self.nodeSettings):
+            return
+        
         currentTreeItemID = self.moduleTreeCtrl.GetPyData( self.moduleTreeCtrl.GetFocusedItem() )
         self.moduleTreeCtrl.Delete( self.moduleTreeCtrl.GetFocusedItem() )
         
-        for j in range(0, len( self.pipeline.activePipeline ) ):
-            if self.pipeline.activePipeline[j].moduleID == currentTreeItemID:
-                        del self.pipeline.activePipeline[j]
-        print self.pipeline.activePipeline
+        for j in range(0, len( self.pipeline.reductionModules ) ):
+            if self.pipeline.reductionModules[j].moduleID == currentTreeItemID:
+                        del self.pipeline.reductionModules[j]
+                        return
         
+        for j in range(0, len( self.pipeline.activeModules ) ):
+            if self.pipeline.activeModules[j].moduleID == currentTreeItemID:
+                        del self.pipeline.activeModules[j]
+                        return
+                    
+        for j in range(0, len( self.pipeline.inactiveModules ) ):
+            if self.pipeline.inactiveModules[j].moduleID == currentTreeItemID:
+                        del self.pipeline.inactiveModules[j]
+                        return
+                    
+    def onMoveModuleUp(self, evt):
+        if (self.moduleTreeCtrl.GetFocusedItem() == self.nodeRoot) or (self.moduleTreeCtrl.GetFocusedItem() == self.nodeReductionModules) or (self.moduleTreeCtrl.GetFocusedItem() == self.nodeActiveModules) or (self.moduleTreeCtrl.GetFocusedItem() == self.nodeInactiveModules) or (self.moduleTreeCtrl.GetFocusedItem() == self.nodeLoadData) or (self.moduleTreeCtrl.GetFocusedItem() == self.nodeSettings):
+            return
+        print self.pipeline.reductionModules
+        currentTreeItemID = self.moduleTreeCtrl.GetPyData( self.moduleTreeCtrl.GetFocusedItem() ) 
+        
+        for j in range(0, len( self.pipeline.reductionModules ) ):
+            if self.pipeline.reductionModules[j].moduleID == currentTreeItemID:
+                        if j == 0:
+                            return
+                        else:
+                            self.pipeline.reductionModules[j-1], self.pipeline.reductionModules[j] = self.pipeline.reductionModules[j], self.pipeline.reductionModules[j-1]
+                            self.moduleTreeCtrl.DeleteChildren( self.nodeReductionModules )
+                            for i in range(0, len( self.pipeline.reductionModules ) ):
+                                treeID = self.moduleTreeCtrl.AppendItem( self.nodeReductionModules, self.pipeline.reductionModules[i].moduleName )
+                                self.moduleTreeCtrl.SetPyData( treeID, self.pipeline.reductionModules[i].moduleID )
+                            return
+                        
+        for j in range(0, len( self.pipeline.activeModules ) ):
+            if self.pipeline.activeModules[j].moduleID == currentTreeItemID:
+                        if j == 0:
+                            return
+                        else:
+                            self.pipeline.activeModules[j-1], self.pipeline.activeModules[j] = self.pipeline.activeModules[j], self.pipeline.activeModules[j-1]
+                            for i in range(0, len( self.pipeline.activeModules ) ):
+                                treeID = self.moduleTreeCtrl.AppendItem( self.nodeActiveModules, self.pipeline.activeModules[i].moduleName )
+                                self.moduleTreeCtrl.SetPyData( treeID, self.pipeline.activeModules[i].moduleID )
+                            return
+                        
+        for j in range(0, len( self.pipeline.inactiveModules ) ):
+            if self.pipeline.inactiveModules[j].moduleID == currentTreeItemID:
+                        if j == 0:
+                            return
+                        else:
+                            self.pipeline.inactiveModules[j-1], self.pipeline.inactiveModules[j] = self.pipeline.inactiveModules[j], self.pipeline.inactiveModules[j-1]
+                            for i in range(0, len( self.pipeline.inactiveModules ) ):
+                                treeID = self.moduleTreeCtrl.AppendItem( self.nodeInactiveModules, self.pipeline.inactiveModules[i].moduleName )
+                                self.moduleTreeCtrl.SetPyData( treeID, self.pipeline.inactiveModules[i].moduleID )
+                            return
+     
+    def onMoveModuleDown(self, evt):
+        if (self.moduleTreeCtrl.GetFocusedItem() == self.nodeRoot) or (self.moduleTreeCtrl.GetFocusedItem() == self.nodeReductionModules) or (self.moduleTreeCtrl.GetFocusedItem() == self.nodeActiveModules) or (self.moduleTreeCtrl.GetFocusedItem() == self.nodeInactiveModules) or (self.moduleTreeCtrl.GetFocusedItem() == self.nodeLoadData) or (self.moduleTreeCtrl.GetFocusedItem() == self.nodeSettings):
+            return
+        print self.pipeline.reductionModules
+        currentTreeItemID = self.moduleTreeCtrl.GetPyData( self.moduleTreeCtrl.GetFocusedItem() ) 
+        
+        for j in range(0, len( self.pipeline.reductionModules ) ):
+            if self.pipeline.reductionModules[j].moduleID == currentTreeItemID:
+                        if j == len( self.pipeline.reductionModules ) - 1:
+                            return
+                        else:
+                            self.pipeline.reductionModules[j+1], self.pipeline.reductionModules[j] = self.pipeline.reductionModules[j], self.pipeline.reductionModules[j+1]
+                            self.moduleTreeCtrl.DeleteChildren( self.nodeReductionModules )
+                            for i in range(0, len( self.pipeline.reductionModules ) ):
+                                treeID = self.moduleTreeCtrl.AppendItem( self.nodeReductionModules, self.pipeline.reductionModules[i].moduleName )
+                                self.moduleTreeCtrl.SetPyData( treeID, self.pipeline.reductionModules[i].moduleID )
+                            return
+                        
+        for j in range(0, len( self.pipeline.activeModules ) ):
+            if self.pipeline.activeModules[j].moduleID == currentTreeItemID:
+                        if j == len( self.pipeline.activeModules ) - 1:
+                            return
+                        else:
+                            self.pipeline.activeModules[j+1], self.pipeline.activeModules[j] = self.pipeline.activeModules[j], self.pipeline.activeModules[j+1]
+                            for i in range(0, len( self.pipeline.activeModules ) ):
+                                treeID = self.moduleTreeCtrl.AppendItem( self.nodeActiveModules, self.pipeline.activeModules[i].moduleName )
+                                self.moduleTreeCtrl.SetPyData( treeID, self.pipeline.activeModules[i].moduleID )
+                            return
+                        
+        for j in range(0, len( self.pipeline.inactiveModules ) ):
+            if self.pipeline.inactiveModules[j].moduleID == currentTreeItemID:
+                        if j == len( self.pipeline.inactiveModules ) - 1:
+                            return
+                        else:
+                            self.pipeline.inactiveModules[j+1], self.pipeline.inactiveModules[j] = self.pipeline.inactiveModules[j], self.pipeline.inactiveModules[j+1]
+                            for i in range(0, len( self.pipeline.inactiveModules ) ):
+                                treeID = self.moduleTreeCtrl.AppendItem( self.nodeInactiveModules, self.pipeline.inactiveModules[i].moduleName )
+                                self.moduleTreeCtrl.SetPyData( treeID, self.pipeline.inactiveModules[i].moduleID )
+                            return  
+                                
 class TabMainSettings( wx.Panel ):
     def __init__( self, parent, pipeline ):
         wx.Panel.__init__( self, parent=parent, id=wx.ID_ANY )
@@ -167,12 +280,6 @@ class TabLoadData( wx.Panel ):
         loadControlsSizer.Add( (7, 0) )
         buttonLoadData = wx.Button( self, label="Load Data" )
         loadControlsSizer.Add( buttonLoadData, 1 )
-        loadControlsSizer.Add( (7, 0) )
-        
-        # 'Initial Reduction' button.
-        loadControlsSizer.Add( (7, 0) )
-        buttonInitialReduction = wx.Button( self, label="Initial Reduction..." )
-        loadControlsSizer.Add( buttonInitialReduction,2  )
         loadControlsSizer.Add( (7, 0) )
         
         # Run selection combo box.
