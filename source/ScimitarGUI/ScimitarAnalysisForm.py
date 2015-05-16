@@ -111,7 +111,11 @@ class ScimitarAnalysisForm( wx.Frame ):
         elif self.moduleTreeCtrl.GetFocusedItem() == self.nodeLoadData:
             self.loadDataTab = TabLoadData( self.mainNotebook, self.pipeline, self )
             self.mainNotebook.AddPage( self.loadDataTab, "Load Data" )
-            
+        else:  # Module was double-clicked.
+            for i in range(0, len( self.pipeline.reductionModules ) ):
+                if self.pipeline.reductionModules[i].moduleID == self.moduleTreeCtrl.GetPyData( self.moduleTreeCtrl.GetFocusedItem() ):
+                    self.mainNotebook.AddPage( self.pipeline.reductionModules[i].getInterfacePanel( self.mainNotebook ), self.pipeline.reductionModules[i].moduleName )
+                    
     def onAddNewModule(self, evt):
         self.pipeline._moduleID += 1
         picker = AnalysisModulePickerForm( self )

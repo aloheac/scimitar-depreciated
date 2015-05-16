@@ -12,18 +12,21 @@
 ####################################################################
 
 from AnalysisModule import *
+from SplitTabularDataPanel import *
 
 class SplitTabularDataModule( AnalysisModule ):
     def __init__(self):
         AnalysisModule.__init__(self, "Split Tabular Data")
         
-        def checkModule( data ):
+    def checkModule( self, data ):
             return True
         
-        def executeModule( data ):
-            for i in range( 0, len( data ) ):
-                dataToBeSplit = data[i]
-                data[i] = []
-                for line in dataToBeSplit:
-                    data[i].append( line.split( ' ' ) )
+    def executeModule( self, data ):
+        for i in range( 0, len( data ) ):
+            dataToBeSplit = data[i]
+            data[i] = []
+            for line in dataToBeSplit:
+                data[i].append( line.split( ' ' ) )
                     
+    def getInterfacePanel( self, parent ):
+        return SplitTabularDataPanel( parent, self )

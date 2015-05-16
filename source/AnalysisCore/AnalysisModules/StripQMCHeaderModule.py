@@ -12,13 +12,17 @@
 ####################################################################
 
 from AnalysisModule import *
+from StripQMCHeaderPanel import *
 
 class StripQMCHeaderModule( AnalysisModule ):
     def __init__(self):
         AnalysisModule.__init__(self, "Strip QMC Header")
         
-        def checkModule( data ):
-            return True
+    def checkModule( self, data ):
+        return True
         
-        def executeModule( data ):
+    def executeModule( self,data ):
             self.output = data
+
+    def getInterfacePanel( self, parent ):
+        return StripQMCHeaderPanel( parent, self )
