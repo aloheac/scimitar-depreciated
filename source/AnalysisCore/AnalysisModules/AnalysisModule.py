@@ -15,9 +15,10 @@ class AnalysisModule():
     def __init__( self, moduleName ):
         self.moduleName = moduleName
         self.interfacePanel = None
+        self.moduleID = None
         self.output = []
         
-        def checkModule():
+        def checkModule( data ):
             print "Analysis module check not implemented for module " + self.moduleName + "!"
             
         def executeModule( data ):

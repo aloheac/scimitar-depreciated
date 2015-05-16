@@ -18,9 +18,14 @@ import sys
 from os import path
 import AnalysisCore
 
+from AnalysisModulePickerForm import *
+
 class ScimitarAnalysisForm( wx.Frame ):
     def __init__( self, parent ):
-        wx.Frame.__init__( self, parent, title="Scimitar Data Analysis", size=(600, 400) )
+        wx.Frame.__init__( self, parent, title="Scimitar Data Analysis", size=(800, 600) )
+        
+        # Set log on the main Scimitar form.
+        self.MainLog = parent.log
         
         # Set analysis pipeline associated with this form.
         self.pipeline = AnalysisCore.AnalysisPipeline()
@@ -53,8 +58,8 @@ class ScimitarAnalysisForm( wx.Frame ):
         self.toolbar.AddLabelTool( wx.ID_ANY, "Save", save_bmp)
         self.toolbar.AddLabelTool( wx.ID_ANY, "Save As", saveAs_bmp)
         self.toolbar.AddSeparator()
-        self.toolbar.AddLabelTool( wx.ID_ANY, "Add", add_bmp)
-        self.toolbar.AddLabelTool( wx.ID_ANY, "Remove", remove_bmp)
+        toolAddModule = self.toolbar.AddLabelTool( wx.ID_ANY, "Add", add_bmp)
+        toolRemoveModule = self.toolbar.AddLabelTool( wx.ID_ANY, "Remove", remove_bmp)
         self.toolbar.AddLabelTool( wx.ID_ANY, "Up", up_bmp)
         self.toolbar.AddLabelTool( wx.ID_ANY, "Down", down_bmp)
         self.toolbar.AddSeparator()
@@ -79,12 +84,14 @@ class ScimitarAnalysisForm( wx.Frame ):
         # Setup the AUI notebook for the main pane.
         self.mainNotebook = aui.AuiNotebook( self )
         self.mainSettingsTab = TabMainSettings( self.mainNotebook, self.pipeline )
-        self.loadDataTab = TabLoadData( self.mainNotebook, self.pipeline )
+        self.loadDataTab = TabLoadData( self.mainNotebook, self.pipeline, self )
         self.mainNotebook.AddPage( self.mainSettingsTab, "Main Settings" )
         self.mainNotebook.AddPage( self.loadDataTab, "Load Data" )
         
         # Add bindings.
         self.Bind( wx.EVT_TREE_ITEM_ACTIVATED, self.onTreeItemDoubleClicked, self.moduleTreeCtrl )
+        self.Bind( wx.EVT_TOOL, self.onAddNewModule, toolAddModule )
+        self.Bind( wx.EVT_TOOL, self.onRemoveModule, toolRemoveModule )
         self._mgr.AddPane( self.moduleTreeCtrl, aui.AuiPaneInfo().Left().Caption("Analysis Modules") )
         self._mgr.AddPane( self.mainNotebook, aui.AuiPaneInfo().CenterPane().Caption("Module Configuration") )
         self._mgr.Update()
@@ -98,8 +105,27 @@ class ScimitarAnalysisForm( wx.Frame ):
             self.mainSettingsTab = TabMainSettings( self.mainNotebook, self.pipeline )
             self.mainNotebook.AddPage( self.mainSettingsTab, "Main Settings" )
         elif self.moduleTreeCtrl.GetFocusedItem() == self.nodeLoadData:
-            self.loadDataTab = TabLoadData( self.mainNotebook, self.pipeline )
+            self.loadDataTab = TabLoadData( self.mainNotebook, self.pipeline, self )
             self.mainNotebook.AddPage( self.loadDataTab, "Load Data" )
+            
+    def onAddNewModule(self, evt):
+        picker = AnalysisModulePickerForm( self )
+        
+        if picker.chosenModule == 0:
+            self.pipeline._moduleID += 1
+            newModule = AnalysisCore.AnalysisModules.SplitTabularDataModule()
+            self.pipeline.activateModule( newModule )
+            treeID = self.moduleTreeCtrl.AppendItem( self.nodeActiveModules, "Split Tabular Data" )
+            self.moduleTreeCtrl.SetPyData( treeID,  self.pipeline._moduleID )
+        
+    def onRemoveModule(self, evt):
+        currentTreeItemID = self.moduleTreeCtrl.GetPyData( self.moduleTreeCtrl.GetFocusedItem() )
+        self.moduleTreeCtrl.Delete( self.moduleTreeCtrl.GetFocusedItem() )
+        
+        for j in range(0, len( self.pipeline.activePipeline ) ):
+            if self.pipeline.activePipeline[j].moduleID == currentTreeItemID:
+                        del self.pipeline.activePipeline[j]
+        print self.pipeline.activePipeline
         
 class TabMainSettings( wx.Panel ):
     def __init__( self, parent, pipeline ):
@@ -128,9 +154,10 @@ class TabMainSettings( wx.Panel ):
             self.pipeline.dataFilename = evt.GetProperty().GetValue()
                 
 class TabLoadData( wx.Panel ):
-    def __init__( self, parent, pipeline ):
+    def __init__( self, parent, pipeline, form ):
         wx.Panel.__init__( self, parent=parent, id=wx.ID_ANY )
         self.pipeline = pipeline
+        self.form = form
         
         allControlsSizer = wx.BoxSizer( wx.VERTICAL )
         loadControlsSizer = wx.BoxSizer( wx.HORIZONTAL )
@@ -142,15 +169,23 @@ class TabLoadData( wx.Panel ):
         loadControlsSizer.Add( buttonLoadData, 1 )
         loadControlsSizer.Add( (7, 0) )
         
+        # 'Initial Reduction' button.
+        loadControlsSizer.Add( (7, 0) )
+        buttonInitialReduction = wx.Button( self, label="Initial Reduction..." )
+        loadControlsSizer.Add( buttonInitialReduction,2  )
+        loadControlsSizer.Add( (7, 0) )
+        
         # Run selection combo box.
         self.runSelectionCboBox = wx.ComboBox( self )
-        loadControlsSizer.Add( self.runSelectionCboBox )
+        loadControlsSizer.Add( self.runSelectionCboBox, 3, wx.EXPAND )
         
         allControlsSizer.Add( (0, 7) )
         allControlsSizer.Add( loadControlsSizer )
+        allControlsSizer.Add( (0, 7) )
         
-        self.dataDisplayBox = wx.TextCtrl(self, style=wx.TE_MULTILINE )
-        allControlsSizer.Add( self.dataDisplayBox, 2, wx.EXPAND )
+        self.dataDisplayBox = wx.TextCtrl(self, style=wx.TE_MULTILINE|wx.TE_READONLY )
+        self.dataDisplayBox.SetFont( wx.Font( 10, wx.MODERN, wx.NORMAL, wx.NORMAL, False, u'Consolas' ) )
+        allControlsSizer.Add( self.dataDisplayBox, 1, wx.EXPAND )
         
         self.SetSizerAndFit( allControlsSizer )
         
@@ -158,7 +193,12 @@ class TabLoadData( wx.Panel ):
         self.Bind(wx.EVT_COMBOBOX, self.onRunSelected, self.runSelectionCboBox )
         
     def onLoadData(self, evt):
-        self.pipeline.loadRawData()
+        try:
+            self.form.MainLog.WriteLogHeader( 'Data Analysis' )
+            self.form.MainLog.WriteLogText( 'Loading data from file...' )
+            self.pipeline.loadRawData()
+        except AnalysisCore.AnalysisPipelineError as err:
+            self.form.MainLog.WriteLogError( err.value )
         
         self.runSelectionCboBox.Clear()
         for i in range( 0, self.pipeline.numberOfRuns() ):
@@ -166,3 +206,4 @@ class TabLoadData( wx.Panel ):
             
     def onRunSelected(self, evt):
         self.dataDisplayBox.SetValue( self.pipeline.rawData[ self.runSelectionCboBox.GetSelection() ] )
+        

@@ -119,7 +119,12 @@ def _getAllRawData( parameterNames, parameterValues, dataDirectory, dataFilename
     for i in range(0, numRuns):
         dataFilePath = str( dataDirectory ) + _getRunPath( i, parameterNames, parameterValues) + str( dataFilename )
         currentDataSet = ""
-        file_handler = open( dataFilePath, 'r' )
+        
+        try:
+            file_handler = open( dataFilePath, 'r' )    
+        except IOError:
+            raise AnalysisPipelineError( "Data file '" + str( dataDirectory ) + _getRunPath( i, parameterNames, parameterValues) + str( dataFilename ) + "' does not exist." )
+        
         for line in file_handler:
             currentDataSet += line
     
@@ -137,6 +142,7 @@ class AnalysisPipeline:
         self.rawData = []
         self.parameterNameList = []
         self.parameterValueList = []
+        self._moduleID = 0
         
     def checkPipeline( self ):
             for module in self.activePipeline:
