@@ -287,5 +287,5 @@ Research Fellowship Program under Grant No. DGE1144081."""
 		ScimitarUncertaintyFormatterForm( self )
 		
 	def onShowAnalysisForm(self, evt):
-		ScimitarAnalysisForm( self )
+		ScimitarAnalysisForm( self, None )
 		

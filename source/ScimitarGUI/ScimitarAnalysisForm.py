@@ -17,18 +17,24 @@ import wx.propgrid as wx_propgrid
 import sys
 from os import path
 import AnalysisCore
+import ScimitarCore
 
 from AnalysisModulePickerForm import *
 
 class ScimitarAnalysisForm( wx.Frame ):
-    def __init__( self, parent ):
+    def __init__( self, parent, loadedPipeline, loadedPipelinePath=None ):
         wx.Frame.__init__( self, parent, title="Scimitar Data Analysis", size=(800, 600) )
         
         # Set log on the main Scimitar form.
         self.MainLog = parent.log
+        self.parent = parent
+        self.loadedPipelinePath = loadedPipelinePath
         
         # Set analysis pipeline associated with this form.
-        self.pipeline = AnalysisCore.AnalysisPipeline()
+        if loadedPipeline == None:
+            self.pipeline = AnalysisCore.AnalysisPipeline()
+        else:
+            self.pipeline = loadedPipeline
         
         # Set up AUI manager.
         self._mgr = aui.AuiManager()
@@ -53,18 +59,18 @@ class ScimitarAnalysisForm( wx.Frame ):
         
         self.toolbar = wx.ToolBar( self, -1, wx.DefaultPosition, wx.DefaultSize, wx.TB_FLAT|wx.TB_NODIVIDER|wx.TB_TEXT )
         self.toolbar.SetToolBitmapSize(wx.Size(32,32))
-        self.toolbar.AddLabelTool( wx.ID_ANY, "New", newAnalysis_bmp )
-        self.toolbar.AddLabelTool( wx.ID_ANY, "Open", openAnalysis_bmp)
-        self.toolbar.AddLabelTool( wx.ID_ANY, "Save", save_bmp)
-        self.toolbar.AddLabelTool( wx.ID_ANY, "Save As", saveAs_bmp)
+        toolNew = self.toolbar.AddLabelTool( wx.ID_ANY, "New", newAnalysis_bmp )
+        toolOpen = self.toolbar.AddLabelTool( wx.ID_ANY, "Open", openAnalysis_bmp)
+        toolSave = self.toolbar.AddLabelTool( wx.ID_ANY, "Save", save_bmp)
+        toolSaveAs = self.toolbar.AddLabelTool( wx.ID_ANY, "Save As", saveAs_bmp)
         self.toolbar.AddSeparator()
         toolAddModule = self.toolbar.AddLabelTool( wx.ID_ANY, "Add", add_bmp)
         toolRemoveModule = self.toolbar.AddLabelTool( wx.ID_ANY, "Remove", remove_bmp)
         toolMoveModuleUp = self.toolbar.AddLabelTool( wx.ID_ANY, "Up", up_bmp)
         toolMoveModuleDown = self.toolbar.AddLabelTool( wx.ID_ANY, "Down", down_bmp)
         self.toolbar.AddSeparator()
-        self.toolbar.AddLabelTool( wx.ID_ANY, "Report Card", reportCard_bmp)
-        self.toolbar.AddLabelTool( wx.ID_ANY, "Execute", execute_bmp)
+        toolReportCard = self.toolbar.AddLabelTool( wx.ID_ANY, "Report Card", reportCard_bmp)
+        toolExecute = self.toolbar.AddLabelTool( wx.ID_ANY, "Execute", execute_bmp)
         
         self.toolbar.Realize()
         
@@ -78,6 +84,19 @@ class ScimitarAnalysisForm( wx.Frame ):
         self.nodeReductionModules = self.moduleTreeCtrl.AppendItem( self.nodeRoot, 'Initial Reduction' )
         self.nodeActiveModules = self.moduleTreeCtrl.AppendItem( self.nodeRoot, 'Active' )
         self.nodeInactiveModules = self.moduleTreeCtrl.AppendItem( self.nodeRoot, 'Inactive' )
+        
+        if not loadedPipeline == None:
+            for i in range( 0, len( self.pipeline.reductionModules ) ):
+                treeID = self.moduleTreeCtrl.AppendItem( self.nodeReductionModules, self.pipeline.reductionModules[i].moduleName )
+                self.moduleTreeCtrl.SetPyData( treeID, self.pipeline.reductionModules[i].moduleID )
+                
+            for i in range( 0, len( self.pipeline.activeModules ) ):
+                treeID = self.moduleTreeCtrl.AppendItem( self.nodeActiveModules, self.pipeline.activeModules[i].moduleName )
+                self.moduleTreeCtrl.SetPyData( treeID, self.pipeline.activeModules[i].moduleID )
+                
+            for i in range( 0, len( self.pipeline.inactiveModules ) ):
+                treeID = self.moduleTreeCtrl.AppendItem( self.nodeInactiveModules, self.pipeline.inactiveModules[i].moduleName )
+                self.moduleTreeCtrl.SetPyData( treeID, self.pipeline.inactiveModules[i].moduleID )
         
         self.moduleTreeCtrl.ExpandAll()
         self.moduleTreeCtrl.SelectItem( self.nodeSettings )
@@ -95,6 +114,12 @@ class ScimitarAnalysisForm( wx.Frame ):
         self.Bind( wx.EVT_TOOL, self.onRemoveModule, toolRemoveModule )
         self.Bind( wx.EVT_TOOL, self.onMoveModuleUp, toolMoveModuleUp )
         self.Bind( wx.EVT_TOOL, self.onMoveModuleDown, toolMoveModuleDown )
+        self.Bind( wx.EVT_TOOL, self.onNew, toolNew )
+        self.Bind( wx.EVT_TOOL, self.onOpen, toolOpen )
+        self.Bind( wx.EVT_TOOL, self.onSaveAs, toolSaveAs )
+        self.Bind( wx.EVT_TOOL, self.onSave, toolSave )
+        self.Bind( wx.EVT_TOOL, self.onReportCard, toolReportCard )
+        self.Bind( wx.EVT_TOOL, self.onExecutePipeline, toolExecute )
         
         self._mgr.AddPane( self.moduleTreeCtrl, aui.AuiPaneInfo().Left().Caption("Analysis Modules") )
         self._mgr.AddPane( self.mainNotebook, aui.AuiPaneInfo().CenterPane().Caption("Module Configuration") )
@@ -115,6 +140,14 @@ class ScimitarAnalysisForm( wx.Frame ):
             for i in range(0, len( self.pipeline.reductionModules ) ):
                 if self.pipeline.reductionModules[i].moduleID == self.moduleTreeCtrl.GetPyData( self.moduleTreeCtrl.GetFocusedItem() ):
                     self.mainNotebook.AddPage( self.pipeline.reductionModules[i].getInterfacePanel( self.mainNotebook ), self.pipeline.reductionModules[i].moduleName )
+             
+            for i in range(0, len( self.pipeline.activeModules ) ):
+                if self.pipeline.activeModules[i].moduleID == self.moduleTreeCtrl.GetPyData( self.moduleTreeCtrl.GetFocusedItem() ):
+                    self.mainNotebook.AddPage( self.pipeline.activeModules[i].getInterfacePanel( self.mainNotebook ), self.pipeline.activeModules[i].moduleName )
+                    
+            for i in range(0, len( self.pipeline.inactiveModules ) ):
+                if self.pipeline.inactiveModules[i].moduleID == self.moduleTreeCtrl.GetPyData( self.moduleTreeCtrl.GetFocusedItem() ):
+                    self.mainNotebook.AddPage( self.pipeline.inactiveModules[i].getInterfacePanel( self.mainNotebook ), self.pipeline.inactiveModules[i].moduleName )
                     
     def onAddNewModule(self, evt):
         self.pipeline._moduleID += 1
@@ -243,7 +276,47 @@ class ScimitarAnalysisForm( wx.Frame ):
                                 treeID = self.moduleTreeCtrl.AppendItem( self.nodeInactiveModules, self.pipeline.inactiveModules[i].moduleName )
                                 self.moduleTreeCtrl.SetPyData( treeID, self.pipeline.inactiveModules[i].moduleID )
                             return  
-                                
+                              
+    def onNew(self, evt):
+        ScimitarAnalysisForm( self.parent )
+        self.Close()
+    
+    def onSave(self, evt):
+        if self.loadedPipelinePath == None:
+            return self.onSaveAs( evt )
+        
+        if path.isfile( self.loadedPipelinePath ):
+            ScimitarCore.writeRunToFile( self.pipeline, self.loadedPipelinePath )
+        else:
+            return self.onSaveAs( evt )
+        
+    def onSaveAs(self, evt):
+        saveFileDialog = wx.FileDialog( self, "Save Analysis File", "", "", "Scimitar Analysis files (*.anl)|*.anl", wx.FD_SAVE|wx.FD_OVERWRITE_PROMPT )
+        if saveFileDialog.ShowModal() == wx.ID_CANCEL:
+            return False # File is not to be saved.
+        
+        ScimitarCore.writeRunToFile(self.pipeline, saveFileDialog.GetPath())
+        
+    def onOpen(self, evt):
+        openFileDialog = wx.FileDialog( self, "Open Analysis File", "", "", "Scimitar Analysis files (*.anl)|*.anl", wx.FD_OPEN|wx.FD_FILE_MUST_EXIST )
+        if openFileDialog.ShowModal() == wx.ID_CANCEL:
+            return  # A file was not opened.
+        
+        ScimitarAnalysisForm( self.parent, ScimitarCore.openRunFromFile( openFileDialog.GetPath() ) )
+        self.Close()
+        
+    def onExecutePipeline(self, evt):
+        self.MainLog.WriteLogHeader( "Data Analysis" )
+        self.MainLog.WriteLogText( "Executing pipeline..." )
+        self.pipeline.executePipeline()
+        self.MainLog.WriteLogText( "Done." )
+                
+    def onReportCard(self, evt):
+        self.MainLog.WriteLogHeader( "Data Analysis" )
+        self.MainLog.WriteLogText( "Checking pipeline for errors..." )
+        self.pipeline.checkPipeline()
+        self.MainLog.WriteLogText( "Done." )
+        
 class TabMainSettings( wx.Panel ):
     def __init__( self, parent, pipeline ):
         wx.Panel.__init__( self, parent=parent, id=wx.ID_ANY )
@@ -268,8 +341,8 @@ class TabMainSettings( wx.Panel ):
         elif evt.GetProperty().GetName() == "dataDirectory":
             self.pipeline.dataDirectory = evt.GetProperty().GetValue()
         elif evt.GetProperty().GetName() == "dataFilename":
-            self.pipeline.dataFilename = evt.GetProperty().GetValue()
-                
+            self.pipeline.dataFilename = evt.GetProperty().GetValue()\
+        
 class TabLoadData( wx.Panel ):
     def __init__( self, parent, pipeline, form ):
         wx.Panel.__init__( self, parent=parent, id=wx.ID_ANY )
@@ -317,4 +390,5 @@ class TabLoadData( wx.Panel ):
             
     def onRunSelected(self, evt):
         self.dataDisplayBox.SetValue( self.pipeline.rawData[ self.runSelectionCboBox.GetSelection() ] )
+        
         
