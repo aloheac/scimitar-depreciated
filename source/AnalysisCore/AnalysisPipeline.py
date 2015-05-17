@@ -146,7 +146,10 @@ class AnalysisPipeline:
         self._moduleID = 0
         
     def checkPipeline( self ):
-            for module in self.activePipeline:
+            for module in self.reductionModules:
+                module.checkModule()
+        
+            for module in self.activeModules:
                 module.checkModule()
         
     def executePipeline( self ):
