@@ -17,16 +17,23 @@ from SplitTabularDataPanel import *
 class SplitTabularDataModule( AnalysisModule ):
     def __init__(self):
         AnalysisModule.__init__(self, "Split Tabular Data")
+        #self.output = []
         
     def checkModule( self, data ):
             return True
         
     def executeModule( self, data ):
+        print "In: " + str( data )
         for i in range( 0, len( data ) ):
             dataToBeSplit = data[i]
             data[i] = []
-            for line in dataToBeSplit:
-                data[i].append( line.split( ' ' ) )
-                    
+            for line in dataToBeSplit.splitlines():
+                data[i].append( line.strip().split( ' ' ) )
+            
+        self.output = data
+        print "Out: " + str( data )
+    #def getOutput(self):
+    #    return self.output
+          
     def getInterfacePanel( self, parent ):
         return SplitTabularDataPanel( parent, self )

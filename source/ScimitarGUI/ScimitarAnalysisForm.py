@@ -18,8 +18,8 @@ import sys
 from os import path
 import AnalysisCore
 import ScimitarCore
-
 from AnalysisModulePickerForm import *
+from MoveAnalysisModuleDialog import *
 
 class ScimitarAnalysisForm( wx.Frame ):
     def __init__( self, parent, loadedPipeline, loadedPipelinePath=None ):
@@ -56,6 +56,7 @@ class ScimitarAnalysisForm( wx.Frame ):
         remove_bmp = wx.Bitmap( basedir + '/resources/remove.png')
         reportCard_bmp = wx.Bitmap( basedir + '/resources/reportCard.png' )
         execute_bmp = wx.Bitmap( basedir + '/resources/createScript.png' )
+        change_bmp = wx.Bitmap( basedir + '/resources/change.png' )
         
         self.toolbar = wx.ToolBar( self, -1, wx.DefaultPosition, wx.DefaultSize, wx.TB_FLAT|wx.TB_NODIVIDER|wx.TB_TEXT )
         self.toolbar.SetToolBitmapSize(wx.Size(32,32))
@@ -68,6 +69,7 @@ class ScimitarAnalysisForm( wx.Frame ):
         toolRemoveModule = self.toolbar.AddLabelTool( wx.ID_ANY, "Remove", remove_bmp)
         toolMoveModuleUp = self.toolbar.AddLabelTool( wx.ID_ANY, "Up", up_bmp)
         toolMoveModuleDown = self.toolbar.AddLabelTool( wx.ID_ANY, "Down", down_bmp)
+        toolChangeLocation = self.toolbar.AddLabelTool( wx.ID_ANY, "Change", change_bmp)
         self.toolbar.AddSeparator()
         toolReportCard = self.toolbar.AddLabelTool( wx.ID_ANY, "Report Card", reportCard_bmp)
         toolExecute = self.toolbar.AddLabelTool( wx.ID_ANY, "Execute", execute_bmp)
@@ -107,7 +109,7 @@ class ScimitarAnalysisForm( wx.Frame ):
         self.loadDataTab = TabLoadData( self.mainNotebook, self.pipeline, self )
         self.mainNotebook.AddPage( self.mainSettingsTab, "Main Settings" )
         self.mainNotebook.AddPage( self.loadDataTab, "Load Data" )
-        
+        #self.mainNotebook.AddPage( WelcomeTab( self.mainNotebook ), "Welcome" )
         # Add bindings.
         self.Bind( wx.EVT_TREE_ITEM_ACTIVATED, self.onTreeItemDoubleClicked, self.moduleTreeCtrl )
         self.Bind( wx.EVT_TOOL, self.onAddNewModule, toolAddModule )
@@ -120,6 +122,7 @@ class ScimitarAnalysisForm( wx.Frame ):
         self.Bind( wx.EVT_TOOL, self.onSave, toolSave )
         self.Bind( wx.EVT_TOOL, self.onReportCard, toolReportCard )
         self.Bind( wx.EVT_TOOL, self.onExecutePipeline, toolExecute )
+        self.Bind( wx.EVT_TOOL, self.onChangeModuleLocation, toolChangeLocation )
         
         self._mgr.AddPane( self.moduleTreeCtrl, aui.AuiPaneInfo().Left().Caption("Analysis Modules") )
         self._mgr.AddPane( self.mainNotebook, aui.AuiPaneInfo().CenterPane().Caption("Module Configuration") )
@@ -159,6 +162,8 @@ class ScimitarAnalysisForm( wx.Frame ):
             newModule = AnalysisCore.AnalysisModules.SplitTabularDataModule()
         if picker.chosenModule == 1:
             newModule = AnalysisCore.AnalysisModules.StripQMCHeaderModule()
+        if picker.chosenModule == 2:
+            newModule = AnalysisCore.AnalysisModules.WriteTableToFileModule()
             
         newModule.moduleID = self.pipeline._moduleID
         
@@ -261,6 +266,7 @@ class ScimitarAnalysisForm( wx.Frame ):
                             return
                         else:
                             self.pipeline.activeModules[j+1], self.pipeline.activeModules[j] = self.pipeline.activeModules[j], self.pipeline.activeModules[j+1]
+                            self.moduleTreeCtrl.DeleteChildren( self.nodeActiveModules )
                             for i in range(0, len( self.pipeline.activeModules ) ):
                                 treeID = self.moduleTreeCtrl.AppendItem( self.nodeActiveModules, self.pipeline.activeModules[i].moduleName )
                                 self.moduleTreeCtrl.SetPyData( treeID, self.pipeline.activeModules[i].moduleID )
@@ -272,21 +278,24 @@ class ScimitarAnalysisForm( wx.Frame ):
                             return
                         else:
                             self.pipeline.inactiveModules[j+1], self.pipeline.inactiveModules[j] = self.pipeline.inactiveModules[j], self.pipeline.inactiveModules[j+1]
+                            self.moduleTreeCtrl.DeleteChildren( self.nodeInactiveModules )
                             for i in range(0, len( self.pipeline.inactiveModules ) ):
                                 treeID = self.moduleTreeCtrl.AppendItem( self.nodeInactiveModules, self.pipeline.inactiveModules[i].moduleName )
                                 self.moduleTreeCtrl.SetPyData( treeID, self.pipeline.inactiveModules[i].moduleID )
                             return  
                               
     def onNew(self, evt):
-        ScimitarAnalysisForm( self.parent )
+        ScimitarAnalysisForm( self.parent, None )
         self.Close()
     
     def onSave(self, evt):
         if self.loadedPipelinePath == None:
             return self.onSaveAs( evt )
-        
+
         if path.isfile( self.loadedPipelinePath ):
+            print self.loadedPipelinePath
             ScimitarCore.writeRunToFile( self.pipeline, self.loadedPipelinePath )
+            self.MainLog.WriteLogText( "File saved." )
         else:
             return self.onSaveAs( evt )
         
@@ -302,21 +311,84 @@ class ScimitarAnalysisForm( wx.Frame ):
         if openFileDialog.ShowModal() == wx.ID_CANCEL:
             return  # A file was not opened.
         
-        ScimitarAnalysisForm( self.parent, ScimitarCore.openRunFromFile( openFileDialog.GetPath() ) )
+        ScimitarAnalysisForm( self.parent, ScimitarCore.openRunFromFile( openFileDialog.GetPath() ), openFileDialog.GetPath() )
         self.Close()
         
     def onExecutePipeline(self, evt):
         self.MainLog.WriteLogHeader( "Data Analysis" )
         self.MainLog.WriteLogText( "Executing pipeline..." )
-        self.pipeline.executePipeline()
+        
+        try:
+            self.pipeline.executePipeline()
+        except AnalysisCore.AnalysisPipelineError as err:
+            self.MainLog.WriteLogError( err.value )
+            
         self.MainLog.WriteLogText( "Done." )
                 
     def onReportCard(self, evt):
         self.MainLog.WriteLogHeader( "Data Analysis" )
         self.MainLog.WriteLogText( "Checking pipeline for errors..." )
-        self.pipeline.checkPipeline()
+        
+        try:
+            self.pipeline.checkPipeline()
+        except AnalysisCore.AnalysisPipelineError as err:
+            self.MainLog.WriteLogError( err.value )
+            
         self.MainLog.WriteLogText( "Done." )
         
+    def onChangeModuleLocation(self, evt):
+        picker = MoveAnalysisModuleDialog( self )        
+        selectedModuleID = self.moduleTreeCtrl.GetPyData( self.moduleTreeCtrl.GetSelection() )
+        
+        if picker.chosenLocation == 0:
+            for i in range( 0, len( self.pipeline.activeModules ) ):
+                if self.pipeline.activeModules[i].moduleID == selectedModuleID:
+                    self.pipeline.reductionModules.append( self.pipeline.activeModules[i] )
+                    del self.pipeline.activeModules[i]
+             
+            for i in range( 0, len( self.pipeline.inactiveModules ) ):
+                if self.pipeline.inactiveModules[i].moduleID == selectedModuleID:
+                    self.pipeline.reductionModules.append( self.pipeline.inactiveModules[i] )
+                    del self.pipeline.inactiveModules[i]
+       
+        elif picker.chosenLocation == 1:
+            for i in range( 0, len( self.pipeline.reductionModules ) ):
+                if self.pipeline.reductionModules[i].moduleID == selectedModuleID:
+                    self.pipeline.activeModules.append( self.pipeline.reductionModules[i] )
+                    del self.pipeline.reductionModules[i]
+             
+            for i in range( 0, len( self.pipeline.inactiveModules ) ):
+                if self.pipeline.inactiveModules[i].moduleID == selectedModuleID:
+                    self.pipeline.activeModules.append( self.pipeline.inactiveModules[i] )
+                    del self.pipeline.inactiveModules[i]
+ 
+        elif picker.chosenLocation == 2:
+            for i in range( 0, len( self.pipeline.reductionModules ) ):
+                if self.pipeline.reductionModules[i].moduleID == selectedModuleID:
+                    self.pipeline.inactiveModules.append( self.pipeline.reductionModules[i] )
+                    del self.pipeline.reductionModules[i]
+             
+            for i in range( 0, len( self.pipeline.activeModules ) ):
+                if self.pipeline.activeModules[i].moduleID == selectedModuleID:
+                    self.pipeline.inactiveModules.append( self.pipeline.activeModules[i] )
+                    del self.pipeline.activeModules[i]
+
+        self.moduleTreeCtrl.DeleteChildren( self.nodeReductionModules )
+        self.moduleTreeCtrl.DeleteChildren( self.nodeActiveModules )
+        self.moduleTreeCtrl.DeleteChildren( self.nodeInactiveModules )
+        
+        for i in range(0, len( self.pipeline.reductionModules ) ):
+            treeID = self.moduleTreeCtrl.AppendItem( self.nodeReductionModules, self.pipeline.reductionModules[i].moduleName )
+            self.moduleTreeCtrl.SetPyData( treeID, self.pipeline.reductionModules[i].moduleID )
+                                
+        for i in range(0, len( self.pipeline.activeModules ) ):
+            treeID = self.moduleTreeCtrl.AppendItem( self.nodeActiveModules, self.pipeline.activeModules[i].moduleName )
+            self.moduleTreeCtrl.SetPyData( treeID, self.pipeline.activeModules[i].moduleID )
+                                
+        for i in range(0, len( self.pipeline.inactiveModules ) ):
+            treeID = self.moduleTreeCtrl.AppendItem( self.nodeInactiveModules, self.pipeline.inactiveModules[i].moduleName )
+            self.moduleTreeCtrl.SetPyData( treeID, self.pipeline.inactiveModules[i].moduleID )
+            
 class TabMainSettings( wx.Panel ):
     def __init__( self, parent, pipeline ):
         wx.Panel.__init__( self, parent=parent, id=wx.ID_ANY )
@@ -324,7 +396,7 @@ class TabMainSettings( wx.Panel ):
         
         # Setup main settings panel.
         settingsGridSizer = wx.BoxSizer( wx.HORIZONTAL )
-        self.settingsGrid = wx_propgrid.PropertyGrid( self, size=(300,300) )
+        self.settingsGrid = wx_propgrid.PropertyGrid( self, size=(500,500) )
         settingsGridSizer.Add( self.settingsGrid, 1, wx.EXPAND )
         self.SetSizerAndFit( settingsGridSizer )
         
@@ -363,6 +435,9 @@ class TabLoadData( wx.Panel ):
         self.runSelectionCboBox = wx.ComboBox( self )
         loadControlsSizer.Add( self.runSelectionCboBox, 3, wx.EXPAND )
         
+        for i in range( 0, self.pipeline.numberOfRuns() ):
+            self.runSelectionCboBox.Append( "(" + str( i ) + ") " + self.pipeline.getRunPath( i ) )
+            
         allControlsSizer.Add( (0, 7) )
         allControlsSizer.Add( loadControlsSizer )
         allControlsSizer.Add( (0, 7) )
@@ -390,5 +465,3 @@ class TabLoadData( wx.Panel ):
             
     def onRunSelected(self, evt):
         self.dataDisplayBox.SetValue( self.pipeline.rawData[ self.runSelectionCboBox.GetSelection() ] )
-        
-        

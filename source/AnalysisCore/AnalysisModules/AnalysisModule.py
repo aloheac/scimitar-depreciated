@@ -18,16 +18,16 @@ class AnalysisModule():
         self.moduleID = None
         self.output = []
         
-        def checkModule( data ):
-            print "Analysis module check not implemented for module " + self.moduleName + "!"
+    def checkModule( self, data ):
+        print "Analysis module check not implemented for module " + self.moduleName + "!"
             
-        def executeModule( data ):
-            print "Analysis module executon not implemented for module " + self.moduleName + "!"
+    def executeModule( self, data ):
+        print "Analysis module executon not implemented for module " + self.moduleName + "!"
         
-        def getOutput():
-            return self.output
+    def getOutput( self ):
+        return self.output
         
-        def getInterfacePanel( parent ):
-            return None
+    def getInterfacePanel( self, parent ):
+        return None
         
         

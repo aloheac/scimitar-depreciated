@@ -47,7 +47,8 @@ class AnalysisModulePickerForm( wx.Dialog ):
         self.Bind( wx.EVT_BUTTON, self.onSelectModule, selectModuleButton )
         
         self.moduleListBox.Append( "Reduction : Split Tabular Data" )
-        self.moduleListBox.Append( "Formatting : Strip QMC Header")
+        self.moduleListBox.Append( "Formatting : Strip QMC Header" )
+        self.moduleListBox.Append( "Output : Write Tabular Data to Disk" )
         
         self.moduleListBox.SetSelection( 0 )
         self.ShowModal()

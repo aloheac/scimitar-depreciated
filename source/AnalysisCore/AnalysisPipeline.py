@@ -157,7 +157,7 @@ class AnalysisPipeline:
             
             for module in self.reductionModules:
                 for i in range(0, len( self.rawData ) ):
-                    module.executeModule( returnedData[i] )
+                    module.executeModule( [returnedData[i]] )
                     returnedData[i] = module.getOutput()
                     
             for module in self.activeModules:
