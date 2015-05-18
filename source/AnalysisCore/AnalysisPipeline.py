@@ -152,17 +152,30 @@ def _getAllRawData( pipeline ):#( parameterNames, parameterValues, dataDirectory
     pipeline.eventProgress = -1    
     pipeline.rawData = rawData
   
-class LoadDataThread( threading.Thread ):
+class PipelineExecutionThread( threading.Thread ):
     def __init__(self, threadID, pipeline):
         threading.Thread.__init__(self)
         self.threadID = threadID
         self.pipeline = pipeline
-        
+
     def run( self ):
         print "Loading data..."
-        _getAllRawData( self.pipeline )
-        print "Done."
+        try:
+            self.pipeline.loadRawData()
+        except AnalysisPipelineError as err:
+            self.pipeline.attachedUI.parent.MainLog.WriteLogError( err.value )  # UI specific.
+            self.pipeline.eventProgress = -1
+            return
         
+        returnedData = self.pipeline.rawData                    
+        for module in self.pipeline.activeModules:
+            module.executeModule( returnedData )
+            returnedData = module.getOutput()
+        
+        # UI specific statements below.
+        self.pipeline.attachedUI.parent.loadDataTab.populateRunList()
+        self.pipeline.attachedUI.parent.MainLog.WriteLogText( "Done." )
+    
 class AnalysisPipeline:
     def __init__( self ):
         self.pipelineName = "Default Pipeline"
@@ -186,15 +199,9 @@ class AnalysisPipeline:
                 module.checkModule( self.rawData )
         
     def executePipeline( self ):
-            self.loadRawData()
-            returnedData = self.rawData
-                    
-            for module in self.activeModules:
-                module.executeModule( returnedData )
-                returnedData = module.getOutput()
-                
-            return returnedData
-    
+        executionThread = PipelineExecutionThread( 1, self )
+        executionThread.start()
+        
     def addReductionModule( self, module ):
         self.reductionModules.append( module )
                        
@@ -228,12 +235,7 @@ class AnalysisPipeline:
         self.parameterValueList = _getTraversedParameterValues( self.dataDirectory )
             
         # _getAllRawData( self.parameterNameList, self.parameterValueList, self.dataDirectory, self.dataFilename, self.reductionModules )
-        threadLoadData = LoadDataThread( 1, self )
-        threadLoadData.start()
-        
-        while threadLoadData.isAlive():
-            sleep(0.1)
-            self.attachedUI.Layout()
+        _getAllRawData( self )
         
     def numberOfRuns(self):
         return _getTotalNumberOfRuns( self.parameterValueList )

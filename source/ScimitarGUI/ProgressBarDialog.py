@@ -34,12 +34,14 @@ class ProgressBarDialog( wx.Dialog ):
     def __init__( self, parent, pipeline ):
         wx.Dialog.__init__( self, parent, title="Please wait...", size=(200,100) )
         self.pipeline = pipeline
+        self.parent = parent
         
         self.mainPanel = wx.Panel( self )
         self.mainSizer = wx.BoxSizer( wx.VERTICAL )
         
+        self.progressLabel = wx.StaticText( self.mainPanel, label="Please wait..." )
         self.mainSizer.Add( (0, 7) )
-        self.mainSizer.Add( wx.StaticText( self.mainPanel, label="Please wait..." ) )
+        self.mainSizer.Add( self.progressLabel )
         self.mainSizer.Add( (0, 7) )
         
         self.progressBar = wx.Gauge( self )

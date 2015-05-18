@@ -345,11 +345,7 @@ class ScimitarAnalysisForm( wx.Frame ):
             self.pipeline.executePipeline()
         except AnalysisCore.AnalysisPipelineError as err:
             self.MainLog.WriteLogError( err.value )
-        
-        self.loadDataTab.populateRunList()   
-        self.MainLog.WriteLogText( "Done." )
-        dialog.Close()
-        
+                   
     def onReportCard(self, evt):
         self.MainLog.WriteLogHeader( "Data Analysis" )
         self.MainLog.WriteLogText( "Checking pipeline for errors..." )
