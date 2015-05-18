@@ -27,7 +27,7 @@ class AnalysisModule():
     def getOutput( self ):
         return self.output
         
-    def getInterfacePanel( self, parent ):
+    def getInterfacePanel( self, parent, pipeline ):
         return None
         
         

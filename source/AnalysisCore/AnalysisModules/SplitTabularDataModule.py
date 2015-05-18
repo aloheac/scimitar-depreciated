@@ -35,5 +35,5 @@ class SplitTabularDataModule( AnalysisModule ):
     #def getOutput(self):
     #    return self.output
           
-    def getInterfacePanel( self, parent ):
-        return SplitTabularDataPanel( parent, self )
+    def getInterfacePanel( self, parent, pipeline ):
+        return SplitTabularDataPanel( parent, self, pipeline )

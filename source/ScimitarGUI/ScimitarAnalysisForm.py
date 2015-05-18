@@ -20,7 +20,24 @@ import AnalysisCore
 import ScimitarCore
 from AnalysisModulePickerForm import *
 from MoveAnalysisModuleDialog import *
+from ProgressBarDialog import *
+import threading
+from time import sleep
 
+class ShowProgressBarThread( threading.Thread ):
+    def __init__(self, threadID, parent, pipeline):
+        threading.Thread.__init__(self)
+        self.threadID = threadID
+        self.parent = parent
+        self.pipeline = pipeline
+        
+    def run(self):
+        dialog = ProgressBarDialog( self.parent, self.pipeline )
+        self.parent.progressBarDialog = dialog
+        while not self.pipeline.eventProgress == -1:
+            sleep(0.1)
+        self.pipeline.eventProgress = 0
+        
 class ScimitarAnalysisForm( wx.Frame ):
     def __init__( self, parent, loadedPipeline, loadedPipelinePath=None ):
         wx.Frame.__init__( self, parent, title="Scimitar Data Analysis", size=(800, 600) )
@@ -29,6 +46,7 @@ class ScimitarAnalysisForm( wx.Frame ):
         self.MainLog = parent.log
         self.parent = parent
         self.loadedPipelinePath = loadedPipelinePath
+        self.progressBarDialog = None
         
         # Set analysis pipeline associated with this form.
         if loadedPipeline == None:
@@ -82,7 +100,7 @@ class ScimitarAnalysisForm( wx.Frame ):
         self.moduleTreeCtrl = wx.TreeCtrl( self, size=(150, 200) )
         self.nodeRoot = self.moduleTreeCtrl.AddRoot( "Pipeline" )
         self.nodeSettings = self.moduleTreeCtrl.AppendItem( self.nodeRoot, 'Settings' )
-        self.nodeLoadData = self.moduleTreeCtrl.AppendItem( self.nodeRoot, 'Load Data' )
+        self.nodeLoadData = self.moduleTreeCtrl.AppendItem( self.nodeRoot, 'Inspect Data' )
         self.nodeReductionModules = self.moduleTreeCtrl.AppendItem( self.nodeRoot, 'Initial Reduction' )
         self.nodeActiveModules = self.moduleTreeCtrl.AppendItem( self.nodeRoot, 'Active' )
         self.nodeInactiveModules = self.moduleTreeCtrl.AppendItem( self.nodeRoot, 'Inactive' )
@@ -108,7 +126,7 @@ class ScimitarAnalysisForm( wx.Frame ):
         self.mainSettingsTab = TabMainSettings( self.mainNotebook, self.pipeline )
         self.loadDataTab = TabLoadData( self.mainNotebook, self.pipeline, self )
         self.mainNotebook.AddPage( self.mainSettingsTab, "Main Settings" )
-        self.mainNotebook.AddPage( self.loadDataTab, "Load Data" )
+        self.mainNotebook.AddPage( self.loadDataTab, "Inspect Data" )
         #self.mainNotebook.AddPage( WelcomeTab( self.mainNotebook ), "Welcome" )
         # Add bindings.
         self.Bind( wx.EVT_TREE_ITEM_ACTIVATED, self.onTreeItemDoubleClicked, self.moduleTreeCtrl )
@@ -142,15 +160,15 @@ class ScimitarAnalysisForm( wx.Frame ):
         else:  # Module was double-clicked.
             for i in range(0, len( self.pipeline.reductionModules ) ):
                 if self.pipeline.reductionModules[i].moduleID == self.moduleTreeCtrl.GetPyData( self.moduleTreeCtrl.GetFocusedItem() ):
-                    self.mainNotebook.AddPage( self.pipeline.reductionModules[i].getInterfacePanel( self.mainNotebook ), self.pipeline.reductionModules[i].moduleName )
+                    self.mainNotebook.AddPage( self.pipeline.reductionModules[i].getInterfacePanel( self.mainNotebook, self.pipeline ), self.pipeline.reductionModules[i].moduleName )
              
             for i in range(0, len( self.pipeline.activeModules ) ):
                 if self.pipeline.activeModules[i].moduleID == self.moduleTreeCtrl.GetPyData( self.moduleTreeCtrl.GetFocusedItem() ):
-                    self.mainNotebook.AddPage( self.pipeline.activeModules[i].getInterfacePanel( self.mainNotebook ), self.pipeline.activeModules[i].moduleName )
+                    self.mainNotebook.AddPage( self.pipeline.activeModules[i].getInterfacePanel( self.mainNotebook, self.pipeline  ), self.pipeline.activeModules[i].moduleName )
                     
             for i in range(0, len( self.pipeline.inactiveModules ) ):
                 if self.pipeline.inactiveModules[i].moduleID == self.moduleTreeCtrl.GetPyData( self.moduleTreeCtrl.GetFocusedItem() ):
-                    self.mainNotebook.AddPage( self.pipeline.inactiveModules[i].getInterfacePanel( self.mainNotebook ), self.pipeline.inactiveModules[i].moduleName )
+                    self.mainNotebook.AddPage( self.pipeline.inactiveModules[i].getInterfacePanel( self.mainNotebook, self.pipeline ), self.pipeline.inactiveModules[i].moduleName )
                     
     def onAddNewModule(self, evt):
         self.pipeline._moduleID += 1
@@ -318,13 +336,20 @@ class ScimitarAnalysisForm( wx.Frame ):
         self.MainLog.WriteLogHeader( "Data Analysis" )
         self.MainLog.WriteLogText( "Executing pipeline..." )
         
+        #dialogThread = ShowProgressBarThread( 3, self, self.pipeline )
+        #dialogThread.start()
+        
+        dialog = ProgressBarDialog( self, self.pipeline )
+        self.pipeline.attachedUI = dialog
         try:
             self.pipeline.executePipeline()
         except AnalysisCore.AnalysisPipelineError as err:
             self.MainLog.WriteLogError( err.value )
-            
+        
+        self.loadDataTab.populateRunList()   
         self.MainLog.WriteLogText( "Done." )
-                
+        dialog.Close()
+        
     def onReportCard(self, evt):
         self.MainLog.WriteLogHeader( "Data Analysis" )
         self.MainLog.WriteLogText( "Checking pipeline for errors..." )
@@ -413,7 +438,7 @@ class TabMainSettings( wx.Panel ):
         elif evt.GetProperty().GetName() == "dataDirectory":
             self.pipeline.dataDirectory = evt.GetProperty().GetValue()
         elif evt.GetProperty().GetName() == "dataFilename":
-            self.pipeline.dataFilename = evt.GetProperty().GetValue()\
+            self.pipeline.dataFilename = evt.GetProperty().GetValue()
         
 class TabLoadData( wx.Panel ):
     def __init__( self, parent, pipeline, form ):
@@ -425,10 +450,9 @@ class TabLoadData( wx.Panel ):
         loadControlsSizer = wx.BoxSizer( wx.HORIZONTAL )
         
         # *** LOAD CONTROLS SIZER ***
-        # 'Load Data' button.
+        
         loadControlsSizer.Add( (7, 0) )
-        buttonLoadData = wx.Button( self, label="Load Data" )
-        loadControlsSizer.Add( buttonLoadData, 1 )
+        loadControlsSizer.Add( wx.StaticText( self, -1, "Run to inspect: " ), 1 )
         loadControlsSizer.Add( (7, 0) )
         
         # Run selection combo box.
@@ -448,20 +472,12 @@ class TabLoadData( wx.Panel ):
         
         self.SetSizerAndFit( allControlsSizer )
         
-        self.Bind(wx.EVT_BUTTON, self.onLoadData, buttonLoadData )
         self.Bind(wx.EVT_COMBOBOX, self.onRunSelected, self.runSelectionCboBox )
         
-    def onLoadData(self, evt):
-        try:
-            self.form.MainLog.WriteLogHeader( 'Data Analysis' )
-            self.form.MainLog.WriteLogText( 'Loading data from file...' )
-            self.pipeline.loadRawData()
-        except AnalysisCore.AnalysisPipelineError as err:
-            self.form.MainLog.WriteLogError( err.value )
-        
+    def populateRunList(self):
         self.runSelectionCboBox.Clear()
         for i in range( 0, self.pipeline.numberOfRuns() ):
             self.runSelectionCboBox.Append( "(" + str( i ) + ") " + self.pipeline.getRunPath( i ) )
             
     def onRunSelected(self, evt):
-        self.dataDisplayBox.SetValue( self.pipeline.rawData[ self.runSelectionCboBox.GetSelection() ] )
+        self.dataDisplayBox.SetValue( str( self.pipeline.rawData[ self.runSelectionCboBox.GetSelection() ] ) )

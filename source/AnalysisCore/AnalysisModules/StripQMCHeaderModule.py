@@ -24,5 +24,5 @@ class StripQMCHeaderModule( AnalysisModule ):
     def executeModule( self,data ):
             self.output = data
 
-    def getInterfacePanel( self, parent ):
-        return StripQMCHeaderPanel( parent, self )
+    def getInterfacePanel( self, parent, pipeline ):
+        return StripQMCHeaderPanel( parent, self, pipeline )

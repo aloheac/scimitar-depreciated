@@ -14,9 +14,10 @@
 import wx
 
 class StripQMCHeaderPanel( wx.Panel ):
-    def __init__(self, parent, module):
+    def __init__(self, parent, module, pipeline ):
         wx.Panel.__init__(self, parent )
         self.module = module
+        self.pipeline = pipeline
         
         self.mainSizer = wx.BoxSizer( wx.VERTICAL )
         

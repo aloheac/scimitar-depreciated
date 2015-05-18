@@ -14,7 +14,13 @@
 import AnalysisModules
 import os.path
 import os
+import threading
+from time import sleep
 
+"""
+Exception Class: Raised when an error is detected by the analysis pipeline
+(generally in checking or executing modules).
+"""
 class AnalysisPipelineError( Exception ):
     def __init__( self, value ):
         self.value = value
@@ -22,6 +28,10 @@ class AnalysisPipelineError( Exception ):
     def __str__( self ):
         return repr( self.value )
 
+"""
+Generate a list of immediate subdirectories of a given directory.
+dir: (string) Path of a directory to get the immediate subdirectories of.
+"""
 def _getListOfSubdirectories( dir ):
     listing = os.listdir( dir )
     subdirs = []
@@ -54,8 +64,11 @@ def _getTraversedParameterNames( dir ):
         parameterNames.append( '_'.join( subdirs[0].split( '_' )[0:-1] ) )
         currentDir = currentDir + '/' + subdirs[0]
 
-# Recursively count the number of leaves on a node with a root
-# element.
+"""
+Recursively count the number of leaves on a node with a root
+element.
+node: (Tree object) Tree to get the total number of leaves of.
+"""
 def numberOfLeaves( node ):
     if node[1] == []:
         return 1
@@ -112,26 +125,44 @@ def _getRunPath( runID, parameterNames, parameterValues ):
         path += str( parameterNames[i] ) + '_' + str( runValues[i][1] ) + '/'
     return path
 
-def _getAllRawData( parameterNames, parameterValues, dataDirectory, dataFilename ):
+def _getAllRawData( pipeline ):#( parameterNames, parameterValues, dataDirectory, dataFilename, reductionModules ):
     rawData = []
-    numRuns = _getTotalNumberOfRuns( parameterValues )
+    numRuns = _getTotalNumberOfRuns( pipeline.parameterValueList )
     
     for i in range(0, numRuns):
-        dataFilePath = str( dataDirectory ) + _getRunPath( i, parameterNames, parameterValues) + str( dataFilename )
+        pipeline.eventProgress = int( 100 * i / numRuns )
+        print "eventProgress " + str(pipeline.eventProgress)
+        dataFilePath = str( pipeline.dataDirectory ) + _getRunPath( i, pipeline.parameterNameList, pipeline.parameterValueList) + str( pipeline.dataFilename )
         currentDataSet = ""
-        
+        print _getRunPath( i, pipeline.parameterNameList, pipeline.parameterValueList)
         try:
             file_handler = open( dataFilePath, 'r' )    
         except IOError:
-            raise AnalysisPipelineError( "Data file '" + str( dataDirectory ) + _getRunPath( i, parameterNames, parameterValues) + str( dataFilename ) + "' does not exist." )
-        
+            raise AnalysisPipelineError( "Data file '" + str( pipeline.dataDirectory ) + _getRunPath( i, pipeline.parameterNameList, pipeline.parameterValueList) + str( pipeline.dataFilename ) + "' does not exist." )
+            pipeline.eventProgress = -1
+            
         for line in file_handler:
             currentDataSet += line
     
+        for module in pipeline.reductionModules:
+            module.executeModule( [currentDataSet] )
+            currentDataSet = module.getOutput()
+            
         rawData.append( currentDataSet )
+    pipeline.eventProgress = -1    
+    pipeline.rawData = rawData
+  
+class LoadDataThread( threading.Thread ):
+    def __init__(self, threadID, pipeline):
+        threading.Thread.__init__(self)
+        self.threadID = threadID
+        self.pipeline = pipeline
         
-    return rawData
-    
+    def run( self ):
+        print "Loading data..."
+        _getAllRawData( self.pipeline )
+        print "Done."
+        
 class AnalysisPipeline:
     def __init__( self ):
         self.pipelineName = "Default Pipeline"
@@ -144,21 +175,19 @@ class AnalysisPipeline:
         self.parameterNameList = []
         self.parameterValueList = []
         self._moduleID = 0
+        self.eventProgress = 0
+        self.attachedUI = None
         
     def checkPipeline( self ):
             for module in self.reductionModules:
-                module.checkModule()
+                module.checkModule( self.rawData )
         
             for module in self.activeModules:
-                module.checkModule()
+                module.checkModule( self.rawData )
         
     def executePipeline( self ):
+            self.loadRawData()
             returnedData = self.rawData
-            
-            for module in self.reductionModules:
-                for i in range(0, len( self.rawData ) ):
-                    module.executeModule( [returnedData[i]] )
-                    returnedData[i] = module.getOutput()
                     
             for module in self.activeModules:
                 module.executeModule( returnedData )
@@ -198,7 +227,13 @@ class AnalysisPipeline:
         self.parameterNameList = _getTraversedParameterNames( self.dataDirectory )
         self.parameterValueList = _getTraversedParameterValues( self.dataDirectory )
             
-        self.rawData = _getAllRawData( self.parameterNameList, self.parameterValueList, self.dataDirectory, self.dataFilename )
+        # _getAllRawData( self.parameterNameList, self.parameterValueList, self.dataDirectory, self.dataFilename, self.reductionModules )
+        threadLoadData = LoadDataThread( 1, self )
+        threadLoadData.start()
+        
+        while threadLoadData.isAlive():
+            sleep(0.1)
+            self.attachedUI.Layout()
         
     def numberOfRuns(self):
         return _getTotalNumberOfRuns( self.parameterValueList )

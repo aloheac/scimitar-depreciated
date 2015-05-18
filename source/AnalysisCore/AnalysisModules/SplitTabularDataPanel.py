@@ -14,9 +14,10 @@
 import wx
 
 class SplitTabularDataPanel( wx.Panel ):
-    def __init__(self, parent, module):
+    def __init__(self, parent, module, pipeline):
         wx.Panel.__init__(self, parent )
         self.module = module
+        self.pipeline = pipeline
         
         self.mainSizer = wx.BoxSizer( wx.VERTICAL )
         
@@ -29,21 +30,22 @@ class SplitTabularDataPanel( wx.Panel ):
         self.outputListCtrl = wx.ListCtrl( self, style=wx.LC_REPORT )
         outputBoxSizer.Add( self.outputListCtrl )
         
-        numRows = len( module.output )
-        numCols = 0
-        for i in range( 0, numRows ):
-            if len( module.output[i] ) > numCols:
-                numCols = len( module.output[i] )
+        for j in range( 0, len( module.output ) ):
+            numRows = len( module.output[j] )
+            numCols = 0
+            for i in range( 0, numRows ):
+                if len( module.output[j][i] ) > numCols:
+                    numCols = len( module.output[j][i] )
                 
-        for i in range( 0, numCols ):
-            self.outputListCtrl.InsertColumn( i, "Column " + str( i ) )
+            for i in range( 0, numCols ):
+                self.outputListCtrl.InsertColumn( i, "Column " + str( i ) )
             
-        for i in range( 0, numRows ):
-            rowToAdd = module.output[i]
-            for j in range( 0, numCols - len( module.output[i] ) ):
-                rowToAdd.append( "" )
+            for i in range( 0, numRows ):
+                rowToAdd = module.output[j][i]
+                for j in range( 0, numCols - len( module.output[j][i] ) ):
+                    rowToAdd.append( "" )
                 
-            self.outputListCtrl.Append( rowToAdd )
+                self.outputListCtrl.Append( rowToAdd )
             
         self.mainSizer.Add( settingsBoxSizer )
         self.mainSizer.Add( outputBoxSizer )
