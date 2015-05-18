@@ -36,7 +36,6 @@ class ShowProgressBarThread( threading.Thread ):
         self.parent.progressBarDialog = dialog
         while not self.pipeline.eventProgress == -1:
             sleep(0.1)
-        self.pipeline.eventProgress = 0
         
 class ScimitarAnalysisForm( wx.Frame ):
     def __init__( self, parent, loadedPipeline, loadedPipelinePath=None ):

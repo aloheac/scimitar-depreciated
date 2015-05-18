@@ -131,7 +131,6 @@ def _getAllRawData( pipeline ):#( parameterNames, parameterValues, dataDirectory
     
     for i in range(0, numRuns):
         pipeline.eventProgress = int( 100 * i / numRuns )
-        print "eventProgress " + str(pipeline.eventProgress)
         dataFilePath = str( pipeline.dataDirectory ) + _getRunPath( i, pipeline.parameterNameList, pipeline.parameterValueList) + str( pipeline.dataFilename )
         currentDataSet = ""
         print _getRunPath( i, pipeline.parameterNameList, pipeline.parameterValueList)
@@ -149,7 +148,7 @@ def _getAllRawData( pipeline ):#( parameterNames, parameterValues, dataDirectory
             currentDataSet = module.getOutput()
             
         rawData.append( currentDataSet )
-    pipeline.eventProgress = -1    
+    pipeline.eventProgress = 0 
     pipeline.rawData = rawData
   
 class PipelineExecutionThread( threading.Thread ):
@@ -167,11 +166,14 @@ class PipelineExecutionThread( threading.Thread ):
             self.pipeline.eventProgress = -1
             return
         
-        returnedData = self.pipeline.rawData                    
+        self.pipeline.attachedUI.progressLabel.SetLabel( "Running active modules..." )
+        returnedData = self.pipeline.rawData
+        numExecutedModules = 0                    
         for module in self.pipeline.activeModules:
+            self.pipeline.eventProgress = int( numExecutedModules / len( self.pipeline.activeModules ) )
             module.executeModule( returnedData )
             returnedData = module.getOutput()
-        
+        self.pipeline.eventProgress = -1
         # UI specific statements below.
         self.pipeline.attachedUI.parent.loadDataTab.populateRunList()
         self.pipeline.attachedUI.parent.MainLog.WriteLogText( "Done." )
