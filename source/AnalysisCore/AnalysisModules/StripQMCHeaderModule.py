@@ -21,8 +21,23 @@ class StripQMCHeaderModule( AnalysisModule ):
     def checkModule( self, data ):
         return True
         
-    def executeModule( self,data ):
-            self.output = data
-
+    def executeModule( self, data ):
+        newData = []
+        for i in range(0, len( data ) ):
+            parsedData = []
+            dataOutputReached = False
+            for line in data[i].splitlines():
+                words = line.split()
+                if len( words ) > 0:
+                    if dataOutputReached == True:
+                        if len( words ) == 16:
+                            parsedData.append( [words] )
+                    else:
+                        if words[0].strip() == "step":
+                            print "YES!!!"
+                            dataOutputReached = True
+            newData.append( parsedData )
+        self.output = newData
+    
     def getInterfacePanel( self, parent, pipeline ):
         return StripQMCHeaderPanel( parent, self, pipeline )

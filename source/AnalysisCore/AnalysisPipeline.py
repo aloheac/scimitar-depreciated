@@ -16,6 +16,7 @@ import os.path
 import os
 import threading
 from time import sleep
+from wx import CallAfter
 
 """
 Exception Class: Raised when an error is detected by the analysis pipeline
@@ -125,7 +126,7 @@ def _getRunPath( runID, parameterNames, parameterValues ):
         path += str( parameterNames[i] ) + '_' + str( runValues[i][1] ) + '/'
     return path
 
-def _getAllRawData( pipeline ):#( parameterNames, parameterValues, dataDirectory, dataFilename, reductionModules ):
+def _getAllRawData( pipeline ):
     rawData = []
     numRuns = _getTotalNumberOfRuns( pipeline.parameterValueList )
     
@@ -133,7 +134,7 @@ def _getAllRawData( pipeline ):#( parameterNames, parameterValues, dataDirectory
         pipeline.eventProgress = int( 100 * i / numRuns )
         dataFilePath = str( pipeline.dataDirectory ) + _getRunPath( i, pipeline.parameterNameList, pipeline.parameterValueList) + str( pipeline.dataFilename )
         currentDataSet = ""
-        print _getRunPath( i, pipeline.parameterNameList, pipeline.parameterValueList)
+
         try:
             file_handler = open( dataFilePath, 'r' )    
         except IOError:
@@ -158,7 +159,6 @@ class PipelineExecutionThread( threading.Thread ):
         self.pipeline = pipeline
 
     def run( self ):
-        print "Loading data..."
         try:
             self.pipeline.loadRawData()
         except AnalysisPipelineError as err:
@@ -166,17 +166,19 @@ class PipelineExecutionThread( threading.Thread ):
             self.pipeline.eventProgress = -1
             return
         
-        self.pipeline.attachedUI.progressLabel.SetLabel( "Running active modules..." )
-        returnedData = self.pipeline.rawData
-        numExecutedModules = 0                    
+        numExecutedModules = 0
+        returnedData = self.pipeline.rawData                
         for module in self.pipeline.activeModules:
-            self.pipeline.eventProgress = int( numExecutedModules / len( self.pipeline.activeModules ) )
+            self.pipeline.eventProgress = int( 100 * float( numExecutedModules ) / float( len( self.pipeline.activeModules ) ) )
             module.executeModule( returnedData )
             returnedData = module.getOutput()
+            numExecutedModules += 1
+        self.pipeline.rawData = returnedData
         self.pipeline.eventProgress = -1
+        
         # UI specific statements below.
-        self.pipeline.attachedUI.parent.loadDataTab.populateRunList()
-        self.pipeline.attachedUI.parent.MainLog.WriteLogText( "Done." )
+        CallAfter( self.pipeline.attachedUI.parent.loadDataTab.populateRunList )
+        CallAfter( self.pipeline.attachedUI.parent.MainLog.WriteLogText, "Done." )
     
 class AnalysisPipeline:
     def __init__( self ):

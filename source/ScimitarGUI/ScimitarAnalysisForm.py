@@ -155,7 +155,7 @@ class ScimitarAnalysisForm( wx.Frame ):
             self.mainNotebook.AddPage( self.mainSettingsTab, "Main Settings" )
         elif self.moduleTreeCtrl.GetFocusedItem() == self.nodeLoadData:
             self.loadDataTab = TabLoadData( self.mainNotebook, self.pipeline, self )
-            self.mainNotebook.AddPage( self.loadDataTab, "Load Data" )
+            self.mainNotebook.AddPage( self.loadDataTab, "Inspect Data" )
         else:  # Module was double-clicked.
             for i in range(0, len( self.pipeline.reductionModules ) ):
                 if self.pipeline.reductionModules[i].moduleID == self.moduleTreeCtrl.GetPyData( self.moduleTreeCtrl.GetFocusedItem() ):
@@ -170,18 +170,21 @@ class ScimitarAnalysisForm( wx.Frame ):
                     self.mainNotebook.AddPage( self.pipeline.inactiveModules[i].getInterfacePanel( self.mainNotebook, self.pipeline ), self.pipeline.inactiveModules[i].moduleName )
                     
     def onAddNewModule(self, evt):
-        self.pipeline._moduleID += 1
         picker = AnalysisModulePickerForm( self )
         treeID = None
         newModule = None
         
         if picker.chosenModule == 0:
             newModule = AnalysisCore.AnalysisModules.SplitTabularDataModule()
-        if picker.chosenModule == 1:
+        elif picker.chosenModule == 1:
             newModule = AnalysisCore.AnalysisModules.StripQMCHeaderModule()
-        if picker.chosenModule == 2:
+        elif picker.chosenModule == 2:
             newModule = AnalysisCore.AnalysisModules.WriteTableToFileModule()
-            
+        else:
+            return  # An improper module was 'chosen', i.e. the user canceled
+                    # out of the dialog box. We should do nothing.
+                  
+        self.pipeline._moduleID += 1                
         newModule.moduleID = self.pipeline._moduleID
         
         if picker.chosenClass == 0: # Reduction
@@ -357,6 +360,9 @@ class ScimitarAnalysisForm( wx.Frame ):
         self.MainLog.WriteLogText( "Done." )
         
     def onChangeModuleLocation(self, evt):
+        if (self.moduleTreeCtrl.GetFocusedItem() == self.nodeRoot) or (self.moduleTreeCtrl.GetFocusedItem() == self.nodeReductionModules) or (self.moduleTreeCtrl.GetFocusedItem() == self.nodeActiveModules) or (self.moduleTreeCtrl.GetFocusedItem() == self.nodeInactiveModules) or (self.moduleTreeCtrl.GetFocusedItem() == self.nodeLoadData) or (self.moduleTreeCtrl.GetFocusedItem() == self.nodeSettings):
+            return
+        
         picker = MoveAnalysisModuleDialog( self )        
         selectedModuleID = self.moduleTreeCtrl.GetPyData( self.moduleTreeCtrl.GetSelection() )
         
@@ -475,4 +481,7 @@ class TabLoadData( wx.Panel ):
             self.runSelectionCboBox.Append( "(" + str( i ) + ") " + self.pipeline.getRunPath( i ) )
             
     def onRunSelected(self, evt):
-        self.dataDisplayBox.SetValue( str( self.pipeline.rawData[ self.runSelectionCboBox.GetSelection() ] ) )
+        try:
+            self.dataDisplayBox.SetValue( str( self.pipeline.rawData[ self.runSelectionCboBox.GetSelection() ] ) )
+        except IndexError:
+            self.MainLog.WriteLogError( "Cannot display data for the selected run. The data may have failed to load." )
