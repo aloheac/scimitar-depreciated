@@ -18,7 +18,7 @@ import wx.richtext as wx_richtext
 from time import strftime
 import ScimitarCore
 from ScimitarRunForm import *
-from ScimitarHelpBrowser import *
+from ScimitarHelpBrowserLegacy import *
 from ScimitarUncertaintyFormatterForm import *
 from ScimitarAnalysisForm import *
 
@@ -83,7 +83,7 @@ class RichLogControl( wx_richtext.RichTextCtrl ):
 		
 class ScimitarMainForm( wx.Frame ):
 	def __init__( self ):
-		wx.Frame.__init__( self, None, -1, 'Scimitar', size=(400, 300) )
+		wx.Frame.__init__( self, None, -1, 'Scimitar', size=(500, 350) )
 		self.InitializeUI()
 		
 	"""

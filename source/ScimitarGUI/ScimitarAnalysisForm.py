@@ -45,7 +45,6 @@ class ScimitarAnalysisForm( wx.Frame ):
         self.MainLog = parent.log
         self.parent = parent
         self.loadedPipelinePath = loadedPipelinePath
-        self.progressBarDialog = None
         
         # Set analysis pipeline associated with this form.
         if loadedPipeline == None:
@@ -75,28 +74,28 @@ class ScimitarAnalysisForm( wx.Frame ):
         execute_bmp = wx.Bitmap( basedir + '/resources/createScript.png' )
         change_bmp = wx.Bitmap( basedir + '/resources/change.png' )
         
-        self.toolbar = wx.ToolBar( self, -1, wx.DefaultPosition, wx.DefaultSize, wx.TB_FLAT|wx.TB_NODIVIDER|wx.TB_TEXT )
+        self.toolbar = aui.AuiToolBar( self, -1, wx.DefaultPosition, wx.DefaultSize, wx.TB_FLAT|wx.TB_NODIVIDER|wx.TB_TEXT )
         self.toolbar.SetToolBitmapSize(wx.Size(32,32))
-        toolNew = self.toolbar.AddLabelTool( wx.ID_ANY, "New", newAnalysis_bmp )
-        toolOpen = self.toolbar.AddLabelTool( wx.ID_ANY, "Open", openAnalysis_bmp)
-        toolSave = self.toolbar.AddLabelTool( wx.ID_ANY, "Save", save_bmp)
-        toolSaveAs = self.toolbar.AddLabelTool( wx.ID_ANY, "Save As", saveAs_bmp)
+        toolNew = self.toolbar.AddTool( wx.ID_ANY, "New", newAnalysis_bmp, wx.NullBitmap, aui.ITEM_NORMAL, short_help_string="New analysis file." )
+        toolOpen = self.toolbar.AddTool( wx.ID_ANY, "Open", openAnalysis_bmp, wx.NullBitmap, aui.ITEM_NORMAL, short_help_string="Open analysis file." )
+        toolSave = self.toolbar.AddTool( wx.ID_ANY, "Save", save_bmp, wx.NullBitmap, aui.ITEM_NORMAL, short_help_string="Save analysis file." )
+        toolSaveAs = self.toolbar.AddTool( wx.ID_ANY, "Save As", saveAs_bmp, wx.NullBitmap, aui.ITEM_NORMAL, short_help_string="New analysis as." )
         self.toolbar.AddSeparator()
-        toolAddModule = self.toolbar.AddLabelTool( wx.ID_ANY, "Add", add_bmp)
-        toolRemoveModule = self.toolbar.AddLabelTool( wx.ID_ANY, "Remove", remove_bmp)
-        toolMoveModuleUp = self.toolbar.AddLabelTool( wx.ID_ANY, "Up", up_bmp)
-        toolMoveModuleDown = self.toolbar.AddLabelTool( wx.ID_ANY, "Down", down_bmp)
-        toolChangeLocation = self.toolbar.AddLabelTool( wx.ID_ANY, "Change", change_bmp)
+        toolAddModule = self.toolbar.AddTool( wx.ID_ANY, "Add", add_bmp, wx.NullBitmap, aui.ITEM_NORMAL, short_help_string="Add new module." )
+        toolRemoveModule = self.toolbar.AddTool( wx.ID_ANY, "Remove", remove_bmp, wx.NullBitmap, aui.ITEM_NORMAL, short_help_string="Remove selected module." )
+        toolMoveModuleUp = self.toolbar.AddTool( wx.ID_ANY, "Up", up_bmp, wx.NullBitmap, aui.ITEM_NORMAL, short_help_string="Move selected module up." )
+        toolMoveModuleDown = self.toolbar.AddTool( wx.ID_ANY, "Down", down_bmp, wx.NullBitmap, aui.ITEM_NORMAL, short_help_string="Move selected module down." )
+        toolChangeLocation = self.toolbar.AddTool( wx.ID_ANY, "Change", change_bmp, wx.NullBitmap, aui.ITEM_NORMAL, short_help_string="Move module to a different pipeline section." )
         self.toolbar.AddSeparator()
-        toolReportCard = self.toolbar.AddLabelTool( wx.ID_ANY, "Report Card", reportCard_bmp)
-        toolExecute = self.toolbar.AddLabelTool( wx.ID_ANY, "Execute", execute_bmp)
+        toolReportCard = self.toolbar.AddTool( wx.ID_ANY, "Report Card", reportCard_bmp, wx.NullBitmap, aui.ITEM_NORMAL, short_help_string="Get pipeline report card." )
+        toolExecute = self.toolbar.AddTool( wx.ID_ANY, "Execute", execute_bmp, wx.NullBitmap, aui.ITEM_NORMAL, short_help_string="Execute pipeline." )
         
         self.toolbar.Realize()
         
         self._mgr.AddPane( self.toolbar, aui.AuiPaneInfo().ToolbarPane().Top())
         
         # Set up module tree.
-        self.moduleTreeCtrl = wx.TreeCtrl( self, size=(150, 200) )
+        self.moduleTreeCtrl = wx.TreeCtrl( self, size=(200, 200) )
         self.nodeRoot = self.moduleTreeCtrl.AddRoot( "Pipeline" )
         self.nodeSettings = self.moduleTreeCtrl.AppendItem( self.nodeRoot, 'Settings' )
         self.nodeLoadData = self.moduleTreeCtrl.AppendItem( self.nodeRoot, 'Inspect Data' )
@@ -126,7 +125,7 @@ class ScimitarAnalysisForm( wx.Frame ):
         self.loadDataTab = TabLoadData( self.mainNotebook, self.pipeline, self )
         self.mainNotebook.AddPage( self.mainSettingsTab, "Main Settings" )
         self.mainNotebook.AddPage( self.loadDataTab, "Inspect Data" )
-        #self.mainNotebook.AddPage( WelcomeTab( self.mainNotebook ), "Welcome" )
+
         # Add bindings.
         self.Bind( wx.EVT_TREE_ITEM_ACTIVATED, self.onTreeItemDoubleClicked, self.moduleTreeCtrl )
         self.Bind( wx.EVT_TOOL, self.onAddNewModule, toolAddModule )
@@ -145,6 +144,7 @@ class ScimitarAnalysisForm( wx.Frame ):
         self._mgr.AddPane( self.mainNotebook, aui.AuiPaneInfo().CenterPane().Caption("Module Configuration") )
         self._mgr.Update()
         
+        self.mainSettingsTab.settingsGrid.FitColumns()   # Expand columns in settings grid to properly fit.
         self.moduleTreeCtrl.ExpandAll()
         self.moduleTreeCtrl.SelectItem( self.nodeSettings )
         self.Show()
@@ -340,9 +340,6 @@ class ScimitarAnalysisForm( wx.Frame ):
         self.MainLog.WriteLogHeader( "Data Analysis" )
         self.MainLog.WriteLogText( "Executing pipeline..." )
         
-        #dialogThread = ShowProgressBarThread( 3, self, self.pipeline )
-        #dialogThread.start()
-        
         dialog = ProgressBarDialog( self, self.pipeline )
         self.pipeline.attachedUI = dialog
         try:
@@ -426,12 +423,13 @@ class TabMainSettings( wx.Panel ):
         settingsGridSizer = wx.BoxSizer( wx.HORIZONTAL )
         self.settingsGrid = wx_propgrid.PropertyGrid( self, size=(500,500) )
         settingsGridSizer.Add( self.settingsGrid, 1, wx.EXPAND )
-        self.SetSizerAndFit( settingsGridSizer )
         
         self.settingsGrid.Append( wx_propgrid.PropertyCategory( "Basic Analysis Settings" ) )
         self.settingsGrid.Append( wx_propgrid.StringProperty( "Pipeline name", "pipelineName", self.pipeline.pipelineName ) )
         self.settingsGrid.Append( wx_propgrid.DirProperty( "Data directory", "dataDirectory", self.pipeline.dataDirectory ) )
         self.settingsGrid.Append( wx_propgrid.StringProperty( "Data filename", "dataFilename", self.pipeline.dataFilename ) )
+        
+        self.SetSizerAndFit( settingsGridSizer )
         
         self.Bind( wx_propgrid.EVT_PG_CHANGED, self.onUpdateMainSettingsGrid, self.settingsGrid )
         

@@ -31,20 +31,20 @@ class UpdateProgressBarThread( threading.Thread ):
         
 class ProgressBarDialog( wx.Dialog ):
     def __init__( self, parent, pipeline ):
-        wx.Dialog.__init__( self, parent, title="Please wait...", size=(200,100), style=wx.CAPTION )
+        wx.Dialog.__init__( self, parent, title="Please wait...", size=(300,100), style=wx.CAPTION )
         self.pipeline = pipeline
         self.parent = parent
         
         self.mainPanel = wx.Panel( self )
         self.mainSizer = wx.BoxSizer( wx.VERTICAL )
         
-        self.progressLabel = wx.StaticText( self.mainPanel, label="Loading data from file..." )
+        self.progressLabel = wx.StaticText( self.mainPanel, label="Loading data and executing modules..." )
         self.mainSizer.Add( (0, 7) )
-        self.mainSizer.Add( self.progressLabel )
+        self.mainSizer.Add( self.progressLabel, 1, wx.CENTER )
         self.mainSizer.Add( (0, 7) )
         
         self.progressBar = wx.Gauge( self )
-        self.mainSizer.Add( self.progressBar )
+        self.mainSizer.Add( self.progressBar, 2, wx.CENTER|wx.EXPAND )
         
         self.mainPanel.SetSizerAndFit( self.mainSizer )
         
