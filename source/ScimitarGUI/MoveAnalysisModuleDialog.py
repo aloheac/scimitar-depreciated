@@ -16,24 +16,26 @@ import wx
 
 class MoveAnalysisModuleDialog( wx.Dialog ):
     def __init__( self, parent ):
-        wx.Dialog.__init__( self, parent, title="MoveAnalysisModule", size=(200,300) )
+        wx.Dialog.__init__( self, parent, title="Move Analysis Module", size=(170,120) )
         self.chosenLocation = -1 
         
         self.mainPanel = wx.Panel( self )
         self.mainSizer = wx.BoxSizer( wx.VERTICAL )
         
         self.mainSizer.Add( (0, 7) )
-        self.mainSizer.Add( wx.StaticText( self.mainPanel, label="  Move module to:" ) )
+        self.mainSizer.Add( wx.StaticText( self.mainPanel, label="Move module to:" ), wx.TOP )
         self.mainSizer.Add( (0, 7) )
         
         self.moduleClassChooser = wx.ComboBox( self.mainPanel )
         self.moduleClassChooser.Append( "Reduction" )
         self.moduleClassChooser.Append( "Active" )
         self.moduleClassChooser.Append( "Inactive" )
-        self.mainSizer.Add( self.moduleClassChooser  )
-             
+        self.mainSizer.Add( self.moduleClassChooser, wx.EXPAND|wx.LEFT )
+        
+        self.mainSizer.Add( (0, 7) )    
         selectLocationButton = wx.Button( self.mainPanel, label="OK" )
-        self.mainSizer.Add( selectLocationButton, wx.CENTER )
+        self.mainSizer.Add( selectLocationButton, wx.ALIGN_CENTER_HORIZONTAL|wx.BOTTOM )
+        self.mainSizer.Add( (0, 7) )
         
         self.mainPanel.SetSizerAndFit( self.mainSizer )
         

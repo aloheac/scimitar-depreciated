@@ -175,7 +175,12 @@ def _getAllRawData( pipeline ):
             currentDataSet += line
     
         for module in pipeline.reductionModules:
-            module.executeModule( [currentDataSet] )
+            try:
+                module.executeModule( [currentDataSet] )
+            except AnalysisModules.ModuleExecutionError as err:
+                raise AnalysisPipelineError( err.value )
+                pipeline.eventProgress = -1
+                
             currentDataSet = module.getOutput()
             
         rawData.append( currentDataSet )
@@ -196,12 +201,15 @@ class PipelineExecutionThread( threading.Thread ):
         
         # Calling pipeline that launches this thread.
         self.pipeline = pipeline
+        
+        self.exception = None
 
     def run( self ):
         try:
             self.pipeline.loadRawData()
         except AnalysisPipelineError as err:
-            CallAfter( self.pipeline.attachedUI.parent.MainLog.WriteLogError( err.value ) ) # UI specific.
+            self.pipeline.attachedUI.parent.MainLog.WriteLogError( err.value ) # UI specific.
+            #self.exception = err
             self.pipeline.eventProgress = -1
             return
         
@@ -209,7 +217,14 @@ class PipelineExecutionThread( threading.Thread ):
         returnedData = self.pipeline.rawData                
         for module in self.pipeline.activeModules:
             self.pipeline.eventProgress = int( 100 * float( numExecutedModules ) / float( len( self.pipeline.activeModules ) ) )
-            module.executeModule( returnedData )
+            try:
+                module.executeModule( returnedData )
+            except AnalysisModules.ModuleExecutionError:
+                self.pipeline.attachedUI.parent.MainLog.WriteLogError( err.value ) # UI specific.
+                #self.exception = err
+                self.pipeline.eventProgress = -1
+                return
+            
             returnedData = module.getOutput()
             numExecutedModules += 1
         self.pipeline.rawData = returnedData
@@ -298,8 +313,10 @@ class AnalysisPipeline:
         self.parameterNameList = _getTraversedParameterNames( self.dataDirectory )
         self.parameterValueList = _getTraversedParameterValues( self.dataDirectory )
             
-        # _getAllRawData( self.parameterNameList, self.parameterValueList, self.dataDirectory, self.dataFilename, self.reductionModules )
-        _getAllRawData( self )
+        try:
+            _getAllRawData( self )
+        except AnalysisPipelineError as err:
+            raise err
         
     def numberOfRuns(self):
         return _getTotalNumberOfRuns( self.parameterValueList )

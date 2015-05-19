@@ -17,22 +17,28 @@ from StripQMCHeaderPanel import *
 class AverageColumnsModule( AnalysisModule ):
     def __init__(self):
         AnalysisModule.__init__(self, "Average Columns")
-        self.columnsToAverage = []
+        self.columnsToAverage = [0,1,2]
         self.output = None
         
     def checkModule( self, data ):
             return True
         
     def executeModule( self, data ):
-        sums = []
-        for column in self.columnsToAverage:
-            sums.append( 0.0 )
+        self.output = []
+        for i in range( 0, len( data ) ):
+            sums = []
+            for column in self.columnsToAverage:
+                sums.append( 0.0 )
         
-        for i in range( 0, len( self.columnsToAverage ) ):
-            for j in range( 0, len( data[ self.columnsToAverage[i] ] ) ):
-                sums[i] += data[self.columnsToAverage[i]][j]
-            sums[i] /= len( data[self.columnsToAverage[i]] )
-        self.output = sums
+            for j in range( 0, len( self.columnsToAverage ) ):
+                col = self.columnsToAverage[j]
+                for k in range( 0, len( data[i] ) ):
+                    try:
+                        sums[j] += float( data[i][k][col] )
+                    except ValueError:
+                        raise ModuleExecutionError( "(AverageColumnsModule): Failed to convert a string to a float.")
+                    sums[j] /= len( data[i] )
+            self.output.append( sums )
         
     def getOutput(self):
         return self.output

@@ -11,6 +11,13 @@
 # University of North Carolina at Chapel Hill
 ####################################################################
 
+class ModuleExecutionError( Exception ):
+    def __init__(self, value):
+        self.value = value
+        
+    def __str__( self ):
+        return repr( self.value )
+    
 class AnalysisModule():
     def __init__( self, moduleName ):
         self.moduleName = moduleName

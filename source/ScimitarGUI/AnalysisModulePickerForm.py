@@ -16,7 +16,7 @@ import wx
 
 class AnalysisModulePickerForm( wx.Dialog ):
     def __init__( self, parent ):
-        wx.Dialog.__init__( self, parent, title="Analysis Module Picker", size=(400,300) )
+        wx.Dialog.__init__( self, parent, title="Analysis Module Picker", size=(400,350) )
         self.chosenModule = -1 
         self.chosenClass = -1
         
@@ -24,7 +24,7 @@ class AnalysisModulePickerForm( wx.Dialog ):
         self.mainSizer = wx.BoxSizer( wx.VERTICAL )
         
         self.mainSizer.Add( (0, 7) )
-        self.mainSizer.Add( wx.StaticText( self.mainPanel, label="  Add module to:" ), 1 )
+        self.mainSizer.Add( wx.StaticText( self.mainPanel, label="  Add module to:" ), wx.TOP )
         self.mainSizer.Add( (0, 7) )
         
         self.moduleClassChooser = wx.ComboBox( self.mainPanel, size=(380, 25) )
@@ -32,19 +32,19 @@ class AnalysisModulePickerForm( wx.Dialog ):
         self.moduleClassChooser.Append( "Active" )
         self.moduleClassChooser.Append( "Inactive" )
         self.moduleClassChooser.SetSelection( 0 )  # Initially set drop down to 'Reduction'.
-        self.mainSizer.Add( self.moduleClassChooser, 2, wx.EXPAND  )
+        self.mainSizer.Add( self.moduleClassChooser, wx.TOP  )
         
         self.mainSizer.Add( (0, 7) )
-        self.mainSizer.Add( wx.StaticText( self.mainPanel, label="  Select a module to add:" ), 3 )
+        self.mainSizer.Add( wx.StaticText( self.mainPanel, label="  Select a module to add:" ), wx.TOP)
         self.mainSizer.Add( (0, 7) )
         
-        self.moduleListBox = wx.ListBox( self.mainPanel )
-        self.mainSizer.Add( self.moduleListBox, 4, wx.EXPAND)
+        self.moduleListBox = wx.ListBox( self.mainPanel, size=(380, 200) )
+        self.mainSizer.Add( self.moduleListBox, wx.EXPAND)
         self.mainPanel.SetSizerAndFit( self.mainSizer )
         
         self.mainSizer.Add( (0, 7) )
-        selectModuleButton = wx.Button( self.mainPanel, label="Select Module", size=(200, 10) )
-        self.mainSizer.Add( selectModuleButton, 5, wx.CENTER )
+        selectModuleButton = wx.Button( self.mainPanel, label="Select Module", size=(200, 30) )
+        self.mainSizer.Add( selectModuleButton, wx.BOTTOM|wx.CENTER)
         self.mainSizer.Add( (0, 7) )
         
         self.Bind( wx.EVT_BUTTON, self.onSelectModule, selectModuleButton )
