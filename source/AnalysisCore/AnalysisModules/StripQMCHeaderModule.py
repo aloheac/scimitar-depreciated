@@ -34,7 +34,6 @@ class StripQMCHeaderModule( AnalysisModule ):
                             parsedData.append( [words] )
                     else:
                         if words[0].strip() == "step":
-                            print "YES!!!"
                             dataOutputReached = True
             newData.append( parsedData )
         self.output = newData

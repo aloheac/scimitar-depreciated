@@ -49,6 +49,7 @@ class AnalysisModulePickerForm( wx.Dialog ):
         self.moduleListBox.Append( "Reduction : Split Tabular Data" )
         self.moduleListBox.Append( "Formatting : Strip QMC Header" )
         self.moduleListBox.Append( "Output : Write Tabular Data to Disk" )
+        self.moduleListBox.Append( "Reduction : Average Columns")
         
         self.moduleListBox.SetSelection( 0 )
         self.ShowModal()

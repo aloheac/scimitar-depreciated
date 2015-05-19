@@ -180,6 +180,8 @@ class ScimitarAnalysisForm( wx.Frame ):
             newModule = AnalysisCore.AnalysisModules.StripQMCHeaderModule()
         elif picker.chosenModule == 2:
             newModule = AnalysisCore.AnalysisModules.WriteTableToFileModule()
+        elif picker.chosenModule == 3:
+            newModule = AnalysisCore.AnalysisModules.AverageColumnsModule()
         else:
             return  # An improper module was 'chosen', i.e. the user canceled
                     # out of the dialog box. We should do nothing.
@@ -484,4 +486,4 @@ class TabLoadData( wx.Panel ):
         try:
             self.dataDisplayBox.SetValue( str( self.pipeline.rawData[ self.runSelectionCboBox.GetSelection() ] ) )
         except IndexError:
-            self.MainLog.WriteLogError( "Cannot display data for the selected run. The data may have failed to load." )
+            self.form.MainLog.WriteLogError( "Cannot display data for the selected run. The data may have failed to load." )
