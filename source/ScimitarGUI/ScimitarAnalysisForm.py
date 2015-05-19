@@ -140,6 +140,8 @@ class ScimitarAnalysisForm( wx.Frame ):
         self.Bind( wx.EVT_TOOL, self.onExecutePipeline, toolExecute )
         self.Bind( wx.EVT_TOOL, self.onChangeModuleLocation, toolChangeLocation )
         
+        self.Connect(-1, -1, self.pipeline.EXECUTION_COMPLETE_ID, self.onExecutionCompletedSignal )
+        
         self._mgr.AddPane( self.moduleTreeCtrl, aui.AuiPaneInfo().Left().Caption("Analysis Modules") )
         self._mgr.AddPane( self.mainNotebook, aui.AuiPaneInfo().CenterPane().Caption("Module Configuration") )
         self._mgr.Update()
@@ -148,7 +150,11 @@ class ScimitarAnalysisForm( wx.Frame ):
         self.moduleTreeCtrl.ExpandAll()
         self.moduleTreeCtrl.SelectItem( self.nodeSettings )
         self.Show()
-        
+    
+    def onExecutionCompletedSignal(self, evt):
+        if not evt == None:  # Exception has been thrown; handle it.
+            self.MainLog.WriteLogError( evt.err.value )
+            
     def onTreeItemDoubleClicked( self, evt ):
         if self.moduleTreeCtrl.GetFocusedItem() == self.nodeSettings:
             self.mainSettingsTab = TabMainSettings( self.mainNotebook, self.pipeline )

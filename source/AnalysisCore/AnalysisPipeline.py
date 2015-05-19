@@ -16,7 +16,7 @@ import os.path
 import os
 import threading
 from time import sleep
-from wx import CallAfter
+from wx import CallAfter, PyEvent, NewId, PostEvent
 
 """
 Exception Class: Raised when an error is detected by the analysis pipeline
@@ -201,15 +201,12 @@ class PipelineExecutionThread( threading.Thread ):
         
         # Calling pipeline that launches this thread.
         self.pipeline = pipeline
-        
-        self.exception = None
 
     def run( self ):
         try:
             self.pipeline.loadRawData()
         except AnalysisPipelineError as err:
-            self.pipeline.attachedUI.parent.MainLog.WriteLogError( err.value ) # UI specific.
-            #self.exception = err
+            PostEvent( self.pipeline.attachedUI.parent, ExecutionCompletedEvent( err, self.pipeline.EXECUTION_COMPLETE_ID ) )
             self.pipeline.eventProgress = -1
             return
         
@@ -219,9 +216,8 @@ class PipelineExecutionThread( threading.Thread ):
             self.pipeline.eventProgress = int( 100 * float( numExecutedModules ) / float( len( self.pipeline.activeModules ) ) )
             try:
                 module.executeModule( returnedData )
-            except AnalysisModules.ModuleExecutionError:
-                self.pipeline.attachedUI.parent.MainLog.WriteLogError( err.value ) # UI specific.
-                #self.exception = err
+            except AnalysisModules.ModuleExecutionError as err:
+                PostEvent( self.pipeline.attachedUI.parent, ExecutionCompletedEvent( err, self.pipeline.EXECUTION_COMPLETE_ID ) )
                 self.pipeline.eventProgress = -1
                 return
             
@@ -229,12 +225,20 @@ class PipelineExecutionThread( threading.Thread ):
             numExecutedModules += 1
         self.pipeline.rawData = returnedData
         self.pipeline.eventProgress = -1
+        PostEvent( self.pipeline.attachedUI.parent, ExecutionCompletedEvent( None, self.pipeline.EXECUTION_COMPLETE_ID ) )
         
         # UI specific statements below. CallAfter call will execute these statements after
         # the thread terminates (I believe). UI will crash otherwise.
         CallAfter( self.pipeline.attachedUI.parent.loadDataTab.populateRunList )
         CallAfter( self.pipeline.attachedUI.parent.MainLog.WriteLogText, "Done." )
         CallAfter( self.pipeline.clearAttachedUI )  # Clear the attached UI so that it is not saved to file.
+
+
+class ExecutionCompletedEvent( PyEvent ):
+    def __init__(self, err, eventID):
+        PyEvent.__init__(self)
+        self.SetEventType( eventID )
+        self.err = err
                                                         
 """
 Main class for holding all state variables and methods associated with the analysis
@@ -269,6 +273,7 @@ class AnalysisPipeline:
         self._moduleID = 0
         self.eventProgress = 0
         self.attachedUI = None
+        self.EXECUTION_COMPLETE_ID = NewId()
         
     def checkPipeline( self ):
             for module in self.reductionModules:
