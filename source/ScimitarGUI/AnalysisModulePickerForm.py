@@ -27,7 +27,7 @@ class AnalysisModulePickerForm( wx.Dialog ):
         self.mainSizer.Add( wx.StaticText( self.mainPanel, label="  Add module to:" ), wx.TOP )
         self.mainSizer.Add( (0, 7) )
         
-        self.moduleClassChooser = wx.ComboBox( self.mainPanel, size=(380, 25) )
+        self.moduleClassChooser = wx.Choice( self.mainPanel, size=(380, 25) )
         self.moduleClassChooser.Append( "Reduction" )
         self.moduleClassChooser.Append( "Active" )
         self.moduleClassChooser.Append( "Inactive" )

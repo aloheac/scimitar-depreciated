@@ -28,7 +28,7 @@ class WriteTableToFileModule( AnalysisModule ):
         
         for line in data:
             for word in line:
-                fileHandler.write( word.strip() + ' ' )
+                fileHandler.write( str(word).strip() + ' ' )
             fileHandler.write( '\n' )
                 
         fileHandler.close()

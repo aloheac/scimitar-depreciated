@@ -153,7 +153,10 @@ class ScimitarAnalysisForm( wx.Frame ):
     
     def onExecutionCompletedSignal(self, evt):
         if not evt.err == None:  # Exception has been thrown; handle it.
-            self.MainLog.WriteLogError( evt.err.value )
+            if isinstance( evt.err, AnalysisCore.AnalysisPipelineError ):
+                self.MainLog.WriteLogError( str( evt.err ) )
+            else:
+                self.MainLog.WriteLogError( "[Unhandled Exception: Tell Andrew!] " + str( evt.err ) )
             
     def onTreeItemDoubleClicked( self, evt ):
         if self.moduleTreeCtrl.GetFocusedItem() == self.nodeSettings:
@@ -463,7 +466,7 @@ class TabLoadData( wx.Panel ):
         loadControlsSizer.Add( (7, 0) )
         
         # Run selection combo box.
-        self.runSelectionCboBox = wx.ComboBox( self )
+        self.runSelectionCboBox = wx.Choice( self )
         loadControlsSizer.Add( self.runSelectionCboBox, 3, wx.EXPAND )
         
         for i in range( 0, self.pipeline.numberOfRuns() ):

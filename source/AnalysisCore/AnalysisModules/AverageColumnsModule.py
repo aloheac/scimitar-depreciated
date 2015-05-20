@@ -35,7 +35,6 @@ class AverageColumnsModule( AnalysisModule ):
                 col = self.columnsToAverage[j]
                 for k in range( 0, len( data[i] ) ):
                     try:
-                        print data[i][k][col]
                         sums[j] += float( data[i][k][col] )
                     except (ValueError, TypeError):
                         raise ModuleExecutionError( "(AverageColumnsModule): Failed to convert a string to a float.")

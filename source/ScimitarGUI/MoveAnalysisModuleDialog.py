@@ -26,11 +26,12 @@ class MoveAnalysisModuleDialog( wx.Dialog ):
         self.mainSizer.Add( wx.StaticText( self.mainPanel, label="Move module to:" ), wx.TOP )
         self.mainSizer.Add( (0, 7) )
         
-        self.moduleClassChooser = wx.ComboBox( self.mainPanel )
+        self.moduleClassChooser = wx.Choice( self.mainPanel )
         self.moduleClassChooser.Append( "Reduction" )
         self.moduleClassChooser.Append( "Active" )
         self.moduleClassChooser.Append( "Inactive" )
         self.mainSizer.Add( self.moduleClassChooser, wx.EXPAND|wx.LEFT )
+        self.moduleClassChooser.SetSelection( 0 )
         
         self.mainSizer.Add( (0, 7) )    
         selectLocationButton = wx.Button( self.mainPanel, label="OK" )
