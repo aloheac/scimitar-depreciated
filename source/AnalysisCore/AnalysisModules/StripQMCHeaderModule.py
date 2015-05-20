@@ -31,7 +31,7 @@ class StripQMCHeaderModule( AnalysisModule ):
                 if len( words ) > 0:
                     if dataOutputReached == True:
                         if len( words ) == 16:
-                            parsedData.append( [words] )
+                            parsedData.append( words )
                     else:
                         if words[0].strip() == "step":
                             dataOutputReached = True

@@ -152,7 +152,7 @@ class ScimitarAnalysisForm( wx.Frame ):
         self.Show()
     
     def onExecutionCompletedSignal(self, evt):
-        if not evt == None:  # Exception has been thrown; handle it.
+        if not evt.err == None:  # Exception has been thrown; handle it.
             self.MainLog.WriteLogError( evt.err.value )
             
     def onTreeItemDoubleClicked( self, evt ):

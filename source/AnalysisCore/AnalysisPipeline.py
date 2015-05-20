@@ -173,17 +173,18 @@ def _getAllRawData( pipeline ):
             
         for line in file_handler:
             currentDataSet += line
-    
+        
+        currentDataSet = [currentDataSet]    
         for module in pipeline.reductionModules:
             try:
-                module.executeModule( [currentDataSet] )
+                module.executeModule( currentDataSet )
             except AnalysisModules.ModuleExecutionError as err:
                 raise AnalysisPipelineError( err.value )
                 pipeline.eventProgress = -1
                 
             currentDataSet = module.getOutput()
             
-        rawData.append( currentDataSet )
+        rawData.append( currentDataSet[0] )
     pipeline.eventProgress = 0 
     pipeline.rawData = rawData
 
@@ -209,6 +210,9 @@ class PipelineExecutionThread( threading.Thread ):
             PostEvent( self.pipeline.attachedUI.parent, ExecutionCompletedEvent( err, self.pipeline.EXECUTION_COMPLETE_ID ) )
             self.pipeline.eventProgress = -1
             return
+        except Exception as err:
+            PostEvent( self.pipeline.attachedUI.parent, ExecutionCompletedEvent( err, self.pipeline.EXECUTION_COMPLETE_ID ) )
+            return
         
         numExecutedModules = 0
         returnedData = self.pipeline.rawData                
@@ -219,6 +223,9 @@ class PipelineExecutionThread( threading.Thread ):
             except AnalysisModules.ModuleExecutionError as err:
                 PostEvent( self.pipeline.attachedUI.parent, ExecutionCompletedEvent( err, self.pipeline.EXECUTION_COMPLETE_ID ) )
                 self.pipeline.eventProgress = -1
+                return
+            except Exception as err:
+                PostEvent( self.pipeline.attachedUI.parent, ExecutionCompletedEvent( err, self.pipeline.EXECUTION_COMPLETE_ID ) )
                 return
             
             returnedData = module.getOutput()
