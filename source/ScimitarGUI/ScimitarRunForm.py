@@ -362,6 +362,7 @@ class ScimitarRunForm( wx.Frame ):
     def onCreateScript(self, evt):
     	self.MainLog.WriteLogHeader("\nGenerate Script")
     	self.MainLog.WriteLogText("Checking parameter grid for errors...")
+        
     	try:
     		self.run.species.checkGrid()
     	except ScimitarCore.ScimitarGridError as err:
@@ -373,6 +374,10 @@ class ScimitarRunForm( wx.Frame ):
     	except ScimitarCore.ScimitarRunError as err:
     		self.MainLog.WriteLogError( err.value )
     		return
+        except Exception as err:
+            self.MainLog.WriteLogError( "[Unhandled Exception 3: " + err.__class__.__name__ + "] " + str( err ) )
+            return
+            
         ScimitarCore.writeScriptToFile( completeScript, self.run.runSettings.scriptLocation + '/' + self.run.runSettings.scriptFilename )
     	self.MainLog.WriteLogText("Done! The script is located at '" + self.run.runSettings.scriptFilename + "'.")
         
@@ -384,7 +389,12 @@ class ScimitarRunForm( wx.Frame ):
         if saveFileDialog.ShowModal() == wx.ID_CANCEL:
             return False # File is not to be saved.
         
-        ScimitarCore.writeRunToFile(self.run, saveFileDialog.GetPath())
+        try:
+            ScimitarCore.writeRunToFile(self.run, saveFileDialog.GetPath())
+        except Exception as err:
+            self.MainLog.WriteLogError( "[Unhandled Exception 2: " + err.__class__.__name__ + "] " + str( err ) )
+            return False
+        
         self.runPath = saveFileDialog.GetPath()
         self.runStateModified = False
         self.MainLog.WriteLogText("Run file '" + str( saveFileDialog.GetPath() ) + "' saved as.")

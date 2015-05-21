@@ -39,7 +39,7 @@ class ShowProgressBarThread( threading.Thread ):
         
 class ScimitarAnalysisForm( wx.Frame ):
     def __init__( self, parent, loadedPipeline, loadedPipelinePath=None ):
-        wx.Frame.__init__( self, parent, title="Scimitar Data Analysis", size=(800, 600) )
+        wx.Frame.__init__( self, parent, title="Scimitar Data Analysis (alpha)", size=(800, 600) )
         
         # Set log on the main Scimitar form.
         self.MainLog = parent.log
@@ -62,6 +62,8 @@ class ScimitarAnalysisForm( wx.Frame ):
         else:
             basedir = path.dirname(__file__)
             
+        self.SetIcon( wx.Icon( basedir + '/resources/scimitar.ico' ) ) 
+           
         newAnalysis_bmp = wx.Bitmap( basedir + '/resources/new.png' )
         openAnalysis_bmp = wx.Bitmap( basedir + '/resources/open.png' )
         save_bmp = wx.Bitmap( basedir + '/resources/save.png')

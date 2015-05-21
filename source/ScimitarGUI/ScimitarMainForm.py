@@ -197,7 +197,12 @@ class ScimitarMainForm( wx.Frame ):
 			return  # A file was not opened.
 		
 		self.log.WriteLogText("Opening run file '" + str( openFileDialog.GetPath() ) + "'.")
-		loadedRun = ScimitarCore.openRunFromFile( openFileDialog.GetPath() )
+		try:
+			loadedRun = ScimitarCore.openRunFromFile( openFileDialog.GetPath() )
+		except Exception as err:
+			self.log.WriteLogError( "[Unhandled Exception 1: " + err.__class__.__name__ + "] " + str( err ) )
+			return
+		
 		newRunEditor = ScimitarRunForm( self, loadedRun, openFileDialog.GetPath() )
 		
 	"""
