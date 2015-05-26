@@ -244,18 +244,18 @@ class ScimitarSpecies:
 			for i in range( 0, self.numRows ):
 				element = self.getElement( i, 0 )
 				if not element[0].isalpha():
-					raise ScimitarGridError( "Variable name in row " + str( i ) + " must begin with a letter." )
+					raise ScimitarGridError( "Variable name in row " + str( i + 1 ) + " must begin with a letter." )
 				if not len( element.split() ) == 1:
-					raise ScimitarGridError( "Variable name in row " + str( i ) + " cannot contain spaces." )
+					raise ScimitarGridError( "Variable name in row " + str( i + 1 ) + " cannot contain spaces." )
 				if not len( element.split( '/' ) ) == 1:
-					raise ScimitarGridError( "Variable name in row " + str( i ) + " cannot contain backslashes." )
+					raise ScimitarGridError( "Variable name in row " + str( i + 1 ) + " cannot contain backslashes." )
 					
 			# Check that all data types are valid types.
 			validDataTypes = [ "int", "real", "string", "file", "function" ]
 			for i in range( 0, self.numRows ):
 				element = self.getElement( i, 1 )
 				if element not in validDataTypes:
-					raise ScimitarGridError( "Data type '" + element + "' in row " + str( i ) + " is not a valid type." ) 
+					raise ScimitarGridError( "Data type '" + element + "' in row " + str( i + 1 ) + " is not a valid type." ) 
 					
 			# Check that the values match the data types.
 			for i in range( 0, self.numRows ):
@@ -269,7 +269,7 @@ class ScimitarSpecies:
 							if not _isValidRange( str( val ) ):
 								int( val )
 					except ValueError:
-						raise ScimitarGridError( "Value '" + value + "' in row " + str( i ) + " is not a valid int, list, or range." )
+						raise ScimitarGridError( "Value '" + value + "' in row " + str( i + 1 ) + " is not a valid int, list, or range." )
 					
 				elif dataType.strip() == "real":
 					try:
@@ -278,18 +278,18 @@ class ScimitarSpecies:
 							if not _isValidRange( str( val ) ):
 								int( val )
 					except ValueError:
-						raise ScimitarGridError( "Value '" + value + "' in row " + str( i ) + " is not a valid real, list, or range." )
+						raise ScimitarGridError( "Value '" + value + "' in row " + str( i + 1 ) + " is not a valid real, list, or range." )
 				
 				elif dataType.strip() == "file":
 					# Check if filename and column number are given in the correct format.
 					if not len( value.split(":") ) == 2:
-						raise ScimitarGridError( "Value for an external file in line " + str( i ) + " must be given in the format [filename]:[column number]." )
+						raise ScimitarGridError( "Value for an external file in line " + str( i + 1 ) + " must be given in the format [filename]:[column number]." )
 					
 					[ filename, columnNumber ] =  value.split(":")
 					try:
 						int( columnNumber )
 					except ValueError:
-						raise ScimitarGridError( "External file column number '" + str( columnNumber ) + "' in line " + str( i ) + " is not a valid integer." )
+						raise ScimitarGridError( "External file column number '" + str( columnNumber ) + "' in line " + str( i + 1 ) + " is not a valid integer." )
 					
 					# Check if file can be opened and that the given column is accessible.
 					try:

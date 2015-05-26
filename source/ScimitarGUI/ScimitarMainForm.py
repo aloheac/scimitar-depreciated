@@ -256,13 +256,25 @@ Research Fellowship Program under Grant No. DGE1144081."""
 		
 		# Open the selected file and get a list of parameters and values. If the file
 		# is not in a format that can be read, alert the user of an error and return.
-		f_import = open( openFileDialog.GetPath(), 'r' )
+		try:
+			f_import = open( openFileDialog.GetPath(), 'r' )
+		except IOError:
+			self.log.WriteLogError( "Unable to open file to be imported." )
+		except Exception as err:
+			self.log.WriteLogError( "[Unhandled Exception 4: " + err.__class__.__name__ + "] " + str( err ) )
+			return
+			
 		value = []
 		parameter = []
 		try:
-			for line in f_import:
-				value.append( line.split('#')[0].strip() )
-				parameter.append(line.split('#')[1].strip())
+			for line in f_import:			
+				if len( line.split('#') ) == 2:  # Accept both '#' and '!' as delimeters.
+					delimiter = '#'            # For backwards compatibility. (To be
+				else:						   # removed in a future version.)
+					delimiter = '!'
+					
+				value.append( line.split( delimiter )[0].strip() )
+				parameter.append(line.split( delimiter )[1].strip())
 		except:
 			self.log.WriteLogError("The given input file is not in an acceptable format.")
 			return

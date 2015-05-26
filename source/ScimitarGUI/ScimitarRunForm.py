@@ -354,6 +354,10 @@ class ScimitarRunForm( wx.Frame ):
         except (ScimitarCore.ScimitarGridError, ScimitarCore.ScimitarRunError) as err:
         	self.MainLog.WriteLogError( err.value )
         	return
+        except Exception as err:
+        	self.MainLog.WriteLogError( "[Unhandled Exception 5: " + err.__class__.name__ + "] " + str( err ) )
+        	return
+        	
         self.MainLog.WriteLogText( self.run.getReportCard() )
     
     """
@@ -377,8 +381,13 @@ class ScimitarRunForm( wx.Frame ):
         except Exception as err:
             self.MainLog.WriteLogError( "[Unhandled Exception 3: " + err.__class__.__name__ + "] " + str( err ) )
             return
-            
-        ScimitarCore.writeScriptToFile( completeScript, self.run.runSettings.scriptLocation + '/' + self.run.runSettings.scriptFilename )
+        
+        try:    
+        	ScimitarCore.writeScriptToFile( completeScript, self.run.runSettings.scriptLocation + '/' + self.run.runSettings.scriptFilename )
+        except Exception as err:
+        	self.MainLog.WriteLogError( "[Unhandled Exception 6: " + err.__class__.__.name__ + "] " + str( err ) )
+        	return
+        	
     	self.MainLog.WriteLogText("Done! The script is located at '" + self.run.runSettings.scriptFilename + "'.")
         
     """
