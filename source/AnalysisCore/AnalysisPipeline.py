@@ -338,3 +338,6 @@ class AnalysisPipeline:
     
     def clearAttachedUI(self):
         self.attachedUI = None
+        
+    def getRunParameterValues( runID ):
+    	return _getRunParameterValues( runID, self.parameterNames, self.parameterValues )

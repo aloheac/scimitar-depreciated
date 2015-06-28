@@ -12,7 +12,7 @@
 ####################################################################
 
 from AnalysisModule import *
-from SplitTabularDataPanel import *
+from WriteTableToFilePanel import *
 
 class WriteTableToFileModule( AnalysisModule ):
     def __init__(self):
@@ -24,7 +24,10 @@ class WriteTableToFileModule( AnalysisModule ):
             return True
         
     def executeModule( self, data ):
-        fileHandler = open( self.filePath, 'w' )
+    	try:
+        	fileHandler = open( self.filePath, 'w' )
+        except IOError:
+        	raise ModuleExecutionError( "(WriteTableToFile): Failed to open '" + self.filePath + "' for writing." )
         
         for line in data:
             for word in line:
@@ -38,5 +41,5 @@ class WriteTableToFileModule( AnalysisModule ):
     def getOutput(self):
         return self.output
                     
-    def getInterfacePanel( self, parent ):
-        return SplitTabularDataPanel( parent, self )
+    def getInterfacePanel( self, parent, pipeline ):
+        return WriteTableToFilePanel( parent, self, pipeline )
