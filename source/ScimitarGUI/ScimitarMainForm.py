@@ -136,7 +136,8 @@ class ScimitarMainForm( wx.Frame ):
 		toolbar_newRun = toolbar.AddLabelTool( wx.ID_ANY, "New Run", newRun_bmp, shortHelp = "Create a new run file." )
 		toolbar_openRun = toolbar.AddLabelTool( wx.ID_ANY, "Open Run", openRun_bmp, shortHelp = "Open an existing run file." )
 		toolbar_import = toolbar.AddLabelTool( wx.ID_ANY, "Import", import_bmp, shortHelp="Import a set of parameters and values from a text file.")
-		toolbar_analysis = toolbar.AddLabelTool( wx.ID_ANY, "Analysis", analysis_bmp, shortHelp="Analyze data produced by a Scimitar run.")
+		# Disable analysis for release -- this feature is not ready yet.
+		#toolbar_analysis = toolbar.AddLabelTool( wx.ID_ANY, "Analysis", analysis_bmp, shortHelp="Analyze data produced by a Scimitar run.")
 		toolbar_help = toolbar.AddLabelTool( 10, "Help", help_bmp, shortHelp = "Open the documentation for Scimitar." )
 		toolbar_exit = toolbar.AddLabelTool( wx.ID_ANY, "Quit", close_bmp, shortHelp = "Quit Scimitar." )
 		
@@ -158,7 +159,7 @@ class ScimitarMainForm( wx.Frame ):
 		self.Bind( wx.EVT_TOOL, self.onExit, toolbar_exit )
 		self.Bind( wx.EVT_TOOL, self.onImport, toolbar_import ) 
 		self.Bind( wx.EVT_TOOL, self.onShowHelp, toolbar_help )
-		self.Bind( wx.EVT_TOOL, self.onShowAnalysisForm, toolbar_analysis )
+		#self.Bind( wx.EVT_TOOL, self.onShowAnalysisForm, toolbar_analysis )
 		# ***** END OF EVENT BINDINGS *****
 		
 		# ***** MAIN PANEL *****
@@ -217,7 +218,7 @@ class ScimitarMainForm( wx.Frame ):
 	"""
 	def onAboutBox(self, evt):
 		description = """A visual driver for parameter-space exploration."""
-		copy = """(C) 2013 - 2015 Joaquin E. Drut, et al.
+		copy = """(C) 2013 - 2016 Joaquin E. Drut, et al.
 Department of Physics and Astronomy
 University of North Carolina at Chapel Hill
 
