@@ -26,6 +26,13 @@ MENU_ID_OPEN_RUN = 100
 MENU_ID_NEW_RUN = 101
 COLOR_RED = (255, 0, 0)
 
+
+def _fixUnicodeResult( value ):
+	fixedValue = ""
+	for ch in str(value):
+		fixedValue += str(ch)
+	return fixedValue.replace("\\n", linesep)
+
 """
 Main log control for the Scimitar main form.
 """
@@ -178,7 +185,7 @@ class ScimitarMainForm( wx.Frame ):
 		# ***** END ABOUT DIALOG BOX *****
 		
 		self.log.WriteLogHeader("Welcome to Scimitar!")
-		self.log.WriteLogText("Version 6.0.2 beta (May 2015)\n")
+		self.log.WriteLogText("Version 6.0.3 beta (Oct 2016)\n")
 		self.log.WriteLogText("Need some guidance getting started?")
 		self.log.WriteLogText("Click on the 'Help' button above.\n")
 		self.log.WriteLogText("Date: " + strftime('%a %d %b %Y %H:%M:%S'))
@@ -235,7 +242,7 @@ Research Fellowship Program under Grant No. DGE1144081."""
 		info = wx.AboutDialogInfo()
 		info.SetIcon( wx.Icon( basedir + '/resources/scimitar.png', wx.BITMAP_TYPE_PNG ) )
 		info.SetName('Scimitar')
-		info.SetVersion('6.0.2 beta (May 2015)')
+		info.SetVersion('6.0.3 beta (Oct 2016)')
 		info.SetDescription( description )
 		info.SetCopyright( copy )
 		info.SetWebSite('http://user.physics.unc.edu/~drut/public_html_UNC/scimitar.html')
@@ -268,16 +275,30 @@ Research Fellowship Program under Grant No. DGE1144081."""
 		value = []
 		parameter = []
 		try:
-			for line in f_import:			
-				if len( line.split('#') ) == 2:  # Accept both '#' and '!' as delimeters.
-					delimiter = '#'            # For backwards compatibility. (To be
-				else:						   # removed in a future version.)
+			improperNewLineWarningThrown = False
+			for line in f_import:
+				if line.strip() == "\n":
+					if not improperNewLineWarningThrown:
+						self.log.WriteLogInformation( "Note that the given import file contains a blank line. Please verify the imported data for correctness." )
+						improperNewLineWarningThrown = True
+
+					continue
+
+				if len( line.split('#') ) == 2:      # Accept both '#' and '!' as delimeters.
+					delimiter = '#'                  # For backwards compatibility. (To be
+				elif len( line.split('!') ) == 2:	 # removed in a future version.)
 					delimiter = '!'
-					
+				else:
+					if not improperNewLineWarningThrown:
+						self.log.WriteLogInformation( "The given input file contains an invalid delimiter or blank line. Please verify the imported data for correctness." )
+						improperNewLineWarningThrown = True
+
+					continue
+
 				value.append( line.split( delimiter )[0].strip() )
-				parameter.append(line.split( delimiter )[1].strip())
-		except:
-			self.log.WriteLogError("The given input file is not in an acceptable format.")
+				parameter.append( line.split( delimiter )[1].strip() )
+		except Exception as err:
+			self.log.WriteLogError("[Unhandled Exception 10] " + str( err ) )
 			return
 		f_import.close()
 		
@@ -287,8 +308,8 @@ Research Fellowship Program under Grant No. DGE1144081."""
 		try:
 			for i in range( 0, len( parameter ) ):
 				parameterGrid.append([parameter[i],'--',value[i],'--'])
-		except:
-			self.log.WriteLogError("The given input file is not in an acceptable format.")
+		except Exception as err:
+			self.log.WriteLogError("[Unhandled Exception 11] " + str( err ) )
 			return
 			
 		newSpecies.parameterGrid = parameterGrid
@@ -296,7 +317,7 @@ Research Fellowship Program under Grant No. DGE1144081."""
 		
 		# Show the run editor with the new species generated from the import.
 		newRunEditor = ScimitarRunForm( self, ScimitarCore.ScimitarRun( newSpecies ), None )
-		self.log.WriteLogText("Creating a new run from imported file.")
+		self.log.WriteLogText( "Creating a new run from imported file." )
 		
 	def onShowHelp(self, evt):
 		ScimitarHelpBrowser( self )
