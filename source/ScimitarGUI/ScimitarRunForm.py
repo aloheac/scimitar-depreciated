@@ -356,7 +356,10 @@ class ScimitarRunForm( wx.Frame ):
         # for ch in str( value ):
         #     fixedValue += str( ch )
         # return fixedValue.replace( "\\n", linesep )
-        return unicodedata.normalize( 'NFKD', value ).encode( 'ascii', 'ignore' )
+        if isinstance( value, unicode ):
+            return unicodedata.normalize( 'NFKD', value ).encode( 'ascii', 'ignore' )
+        else:
+            return value
 
     """
     Event Handler: Generate report card and write output to the log of the main window.
