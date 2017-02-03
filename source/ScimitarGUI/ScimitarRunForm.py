@@ -405,7 +405,7 @@ class ScimitarRunForm( wx.Frame ):
             self.MainLog.WriteLogError( "[Unhandled Exception 6: " + err.__class__.__name__ + "] " + str( err ) )
             return
 
-        self.MainLog.WriteLogText("Done! The script is located at '" + self.run.runSettings.scriptFilename + "'.")
+        self.MainLog.WriteLogText("Done! The script is located at '" + self.run.runSettings.scriptLocation + '/' + self.run.runSettings.scriptFilename + "'.")
 
     """
     Event Handler: 'Save as' run. Returns True if file was saved, False if the user cancels the dialog box.

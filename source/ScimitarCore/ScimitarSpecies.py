@@ -308,7 +308,14 @@ class ScimitarSpecies:
 				
 				elif dataType.strip() == "function":
 					pass
-					
+
+			# Check if duplicate parameter values exist for a given parameter value.
+			for i in range( 0, self.numRows ):
+				values = self.getElement( i, 2 ).split( "," )
+				for value in values:
+					if values.count( value ) > 1:
+						raise ScimitarGridError( "The parameter value '" + str(value) + "' is duplicated in line " + str( i + 1 ) + "." )
+
 			# Check that a correct directory order exists.
 			directoryOrders = []
 			for i in range( 0, self.numRows ):
