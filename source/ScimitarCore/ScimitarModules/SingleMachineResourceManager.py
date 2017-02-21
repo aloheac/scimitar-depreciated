@@ -31,6 +31,7 @@ class SingleMachineResourceManager( ResourceManagerModule ):
 		# Import external packages.
 		contribution += "from subprocess import Popen\n"
 		contribution += "from time import sleep\n"
+		contribution += "from datetime import datetime\n"
 		contribution += "import os\n\n"
 		
 		# Initialized various variables and parameters. Note that the run
@@ -89,5 +90,7 @@ class SingleMachineResourceManager( ResourceManagerModule ):
 			contribution += "for execLine in ADDITIONAL_POST_EXEC_CMDS:\n"
 			contribution += "	proc = Popen( execLine, shell=True )\n"
 			contribution += "	proc.wait()\n"
+
+		contribution += "print '>> Execution completed at ' + str(datetime.now()) + '.'\n"
 		contribution += "# ***** End of ResourceManager: Single Machine *****\n\n"
 		return contribution
