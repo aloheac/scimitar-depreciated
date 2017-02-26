@@ -205,7 +205,6 @@ class ScimitarSpecies:
 			# Make sure the given index is valid, if not raise an exception.
 			if numRowBefore >= self.numRows:
 				raise ScimitarSpeciesError( 'Index of row to add a new row after is out of range!' )
-				return
 		
 			# Increment the row dimensions by one.
 			self.numRows += 1
@@ -226,7 +225,6 @@ class ScimitarSpecies:
 			# Make sure the given index is valid, if not raise an exception.
 			if index >= self.numRows:
 				raise ScimitarSpeciesError( 'Index of row to delete is out of range!' )
-				return
 				
 			# Delete the row from the data structure.
 			del self.parameterGrid[index]
@@ -336,22 +334,24 @@ class ScimitarSpecies:
 
 			# Check that a correct directory order exists.
 			directoryOrders = []
-			for i in range( 0, self.numRows ):
-				if not self.getElement( i, 3 ).strip() == DEFAULT_EMPTY_ELEMENT:
-					directoryOrders.append( self.getElement( i, 3 ) )
+			try:
+				for i in range( 0, self.numRows ):
+					if not self.getElement( i, 3 ).strip() == DEFAULT_EMPTY_ELEMENT:
+						directoryOrders.append( int( self.getElement( i, 3 ) ) )
+			except ValueError:
+				raise ScimitarGridError( "Directory order '" + str( self.getElement( i, 3 ) ) + "' in line " + str( i + 1 ) + " must be a valid integer." )
 			
 			directoryOrders.sort()
 			
 			# Make sure that the first element is '1'.
-			if len( directoryOrders ) == 0 or not directoryOrders[0].strip() == '1':
+			if len( directoryOrders ) == 0 or not directoryOrders[0] == 1:
 				raise ScimitarGridError( "The parameter grid must contain a directory order of 1." )
 			
 			# Make sure that the rest of the dir orders are consecutive.
 			currentOrderToCheck = 1
 			for i in range( 1, len( directoryOrders ) ):
 				currentOrderToCheck += 1
-				if ( not directoryOrders[i].strip() == str( currentOrderToCheck ) ) and \
-				   ( not directoryOrders[i].strip() == DEFAULT_EMPTY_ELEMENT ):
+				if not directoryOrders[i] == currentOrderToCheck:
 					raise ScimitarGridError( "All directory orders must be consecutive." )
 		
 		"""
