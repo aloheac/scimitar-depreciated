@@ -91,6 +91,24 @@ def _expandValues( value, valueType ):
 		
 		return allValues
 
+	elif valueType == "string":
+		splitValue = value.split(",")
+
+		if len( splitValue ) <= 1:
+			# We should place a single string in a list with one element so that later in generateRunListing(),
+			# the entire string is treated as one value (or, element), instead of having each character
+			# in the string taken as a single parameter value.
+			return [value]
+		else:
+			allValues = []
+			for v in splitValue:
+				allValues.append( v )
+
+			return allValues
+
+	else:
+		return value  # Value is a type that cannot be expanded. Simply return it as is.
+
 """
 Expand a range into a list of the values it represents.
 

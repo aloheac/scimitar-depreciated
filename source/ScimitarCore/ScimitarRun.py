@@ -169,7 +169,7 @@ class ScimitarRun:
 		# Load the execution module.
 		if self.activeResourceManager == "NO_RESOURCE_MANAGER":
 			raise ScimitarRunError( "There does not seem to be a valid resource manager loaded!")
-			return
+
 		script += self.activeResourceManager.getScriptContribution()
 		
 		# Load the post-execution module.
