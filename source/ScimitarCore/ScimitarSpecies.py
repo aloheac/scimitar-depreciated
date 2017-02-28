@@ -339,7 +339,7 @@ class ScimitarSpecies:
 					if not self.getElement( i, 3 ).strip() == DEFAULT_EMPTY_ELEMENT:
 						directoryOrders.append( int( self.getElement( i, 3 ) ) )
 			except ValueError:
-				raise ScimitarGridError( "Directory order '" + str( self.getElement( i, 3 ) ) + "' in line " + str( i + 1 ) + " must be a valid integer." )
+				raise ScimitarGridError( "Directory orders must be a valid integer." )
 			
 			directoryOrders.sort()
 			
@@ -360,16 +360,20 @@ class ScimitarSpecies:
 		def generateRunListing( self ):
 			# Get list of directory orders.
 			directoryOrders = []
-			for i in range( 0, self.numRows ):
-				if not self.getElement( i, 3 ).strip() == DEFAULT_EMPTY_ELEMENT:
-					directoryOrders.append( self.getElement( i, 3 ) )
+			try:
+				for i in range( 0, self.numRows ):
+					if not self.getElement( i, 3 ).strip() == DEFAULT_EMPTY_ELEMENT:
+						directoryOrders.append( int( self.getElement( i, 3 ) ) )
+			except ValueError:
+				raise ScimitarGridError( "Directory orders must be a valid integer." )
+
 			directoryOrders.sort()
 			
 			# Get rows with expanded values for each directory order.
 			rowsToInclude = []
 			for directoryOrder in directoryOrders:
 				for i in range( 0, self.numRows ):
-					if self.getElement( i, 3 ) == directoryOrder:
+					if self.getElement( i, 3 ).strip() == str( directoryOrder ):
 						rowsToInclude.append( [ self.getElement( i, 0 ), _expandValues( self.getElement( i, 2 ).strip(), self.getElement( i, 1 ) ) ] )
 						
 			# Generate the run listing from these rows.
