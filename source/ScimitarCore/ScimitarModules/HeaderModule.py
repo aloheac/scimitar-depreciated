@@ -21,7 +21,7 @@ class HeaderModule( PreExecutionModule ):
 		contribution  = "from datetime import datetime\n"
 		contribution += "print '***************************************'\n"
 		contribution += "print '* Scimitar Execution Script'\n"
-		contribution += "print '* Version 6.0.4 beta (Feb 2017)'\n"
+		contribution += "print '* Version 6.0.4 (Feb 2017)'\n"
 		contribution += "print '***************************************'\n"
 		contribution += "print 'Started ' + str(datetime.now())\n"
 		return contribution
