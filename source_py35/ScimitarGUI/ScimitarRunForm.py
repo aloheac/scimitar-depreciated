@@ -572,7 +572,7 @@ class ScimitarRunForm( wx.Frame ):
         self.runStateModified = True
         message = "Specify the new number of rows in the grid:"
         current_size = str(self.speciesGrid.GetNumberRows())
-        dlg = wx.TextEntryDialog(self, message, defaultValue=current_size)
+        dlg = wx.TextEntryDialog(self, message, value=current_size)
         dlg.ShowModal()
         new_row_size = dlg.GetValue()
         dlg.Destroy()
