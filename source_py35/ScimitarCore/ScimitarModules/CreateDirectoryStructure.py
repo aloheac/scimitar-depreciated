@@ -24,7 +24,19 @@ def _getValueList( run ):
 	for i in range( 0, run.species.numRows ):
 		valueList.append( run.species.getElement( i, 2 ) )
 	return str( valueList )
-	
+
+
+def _getFormatList( run ):
+	formatList = []
+	for i in range( 0, run.species.numRows ):
+		element = run.species.getElement( i, 4 )
+		if element.strip() == "--" or element.strip() == "":
+			formatList.append( "{}" )
+		else:
+			formatList.append( "{:" + element.strip() + "}" )
+
+	return str( formatList )
+
 class CreateDirectoryStructure( PreExecutionModule ):
 	def __init__( self, run ):
 		PreExecutionModule.__init__( self, "Create Directory Structure", 20, run )
@@ -37,7 +49,7 @@ class CreateDirectoryStructure( PreExecutionModule ):
 		contribution += 'import os\n\n'
 		
 		# Private function for generating input file for a run.
-		contribution += "def _createInputFileForRun( run, parameterList, valueList ):\n"
+		contribution += "def _createInputFileForRun( run, parameterList, valueList, formatList ):\n"
 		contribution += "	run = run.split('/')\n"
 		contribution += "	splitRuns = []\n"
 		contribution += "	for r in run:\n"
@@ -53,7 +65,7 @@ class CreateDirectoryStructure( PreExecutionModule ):
 		contribution += "					valueToAdd = str( splitRuns[j][1] )\n"
 		contribution += "					break\n"
 		contribution += "			if valueToAdd == '' and parameterToAdd == '':\n"
-		contribution += "				inputFile += str( valueList[i] ) + '\t#' + str( parameterList[i] ) + '\\n'\n"
+		contribution += "				inputFile += str( formatList[i] ).format( valueList[i] ) + '\t#' + str( parameterList[i] ) + '\\n'\n"
 		contribution += "			else:\n"
 		contribution += "				inputFile += valueToAdd + '\t#' + parameterToAdd + '\\n'\n"
 		contribution +=	"	return inputFile\n\n"
@@ -61,6 +73,7 @@ class CreateDirectoryStructure( PreExecutionModule ):
 		# Initialize parameters. Recall that the run listing is given as a global variable.
 		contribution += "parameterList = " + _getParameterList( self.run ) + "\n"
 		contribution += "valueList = " + _getValueList( self.run ) + "\n"
+		contribution += "formatList = " + _getFormatList( self.run ) + "\n"
 		contribution += "initWorkingDir = os.path.dirname( os.path.abspath(__file__) )\n"
 		contribution += "okayToCreateDirectoryStructure = True\n"
 		
@@ -91,7 +104,7 @@ class CreateDirectoryStructure( PreExecutionModule ):
 		contribution += "	for run in runListing:\n"
 		contribution += "		os.chdir( initWorkingDir + '/exec/' + run )\n"
 		contribution += "		f_inputFile = open( initWorkingDir + '/exec/' + run + '/" + self.run.runSettings.inputFilename + "', 'w' )\n"
-		contribution += "		f_inputFile.write( _createInputFileForRun( run, parameterList, valueList ) )\n"
+		contribution += "		f_inputFile.write( _createInputFileForRun( run, parameterList, valueList, formatList ) )\n"
 		contribution += "		f_inputFile.close()\n"
 		contribution += "		if not os.path.isfile( initWorkingDir + '/" + self.run.runSettings.executableFilename + "'):\n"
 		contribution += "			if os.path.isfile( '" + self.run.runSettings.sourcePath + "/" + self.run.runSettings.executableFilename + "' ):\n"

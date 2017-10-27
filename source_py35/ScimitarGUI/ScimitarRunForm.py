@@ -45,6 +45,7 @@ class RunNotebook( wx.Notebook ):
         RunForm.speciesGrid.SetColLabelValue( 1, "Type")
         RunForm.speciesGrid.SetColLabelValue( 2, "Value(s)")
         RunForm.speciesGrid.SetColLabelValue( 3, "Directory Order")
+        RunForm.speciesGrid.SetColLabelValue( 4, "Format")
         RunForm.speciesGrid.SetColSize( 3, 100 )
 
         # ***** RUN SETTINGS TAB *****

@@ -12,7 +12,7 @@
 ####################################################################
 
 DEFAULT_NUM_ROWS = 5
-DEFAULT_NUM_COLUMNS = 4
+DEFAULT_NUM_COLUMNS = 5
 DEFAULT_EMPTY_ELEMENT = '--'
 
 """
@@ -170,6 +170,15 @@ def _isValidRange( value ):
 	return True
 
 """
+Format the value format specifier, such that it will be accepted by the Python format() function.
+"""
+def _formatSpecifier( specifier ):
+	if specifier.strip() == "--" or specifier.strip() == "":
+		return "{}"
+	else:
+		return "{:" + specifier.strip() + "}"
+
+"""
 Species object for Scimitar. This should only directly be used by the core.
 """
 class ScimitarSpecies:
@@ -185,7 +194,7 @@ class ScimitarSpecies:
 			self.numColumns = DEFAULT_NUM_COLUMNS;
 			
 			# const: Names of the grid headings of the Species.
-			self.speciesHeadings = [ "Parameter", "Type", "Value", "Dir Order", "Notes" ]
+			self.speciesHeadings = [ "Parameter", "Type", "Value", "Dir Order", "Format", "Notes" ]
 
 			# Initialize grid of parameters to the default.	Note that the two
 			# dimensional list is row-major.
@@ -353,7 +362,13 @@ class ScimitarSpecies:
 				currentOrderToCheck += 1
 				if not directoryOrders[i] == currentOrderToCheck:
 					raise ScimitarGridError( "All directory orders must be consecutive." )
-		
+
+			# Attempt to generate the run listing. Pass along any generated exceptions.
+			try:
+				self.generateRunListing()
+			except Exception as e:
+				raise e
+
 		"""
 		Get a list of all the runs that will be executed.
 		"""			
@@ -374,13 +389,22 @@ class ScimitarSpecies:
 			for directoryOrder in directoryOrders:
 				for i in range( 0, self.numRows ):
 					if self.getElement( i, 3 ).strip() == str( directoryOrder ):
-						rowsToInclude.append( [ self.getElement( i, 0 ), _expandValues( self.getElement( i, 2 ).strip(), self.getElement( i, 1 ) ) ] )
+						rowsToInclude.append( [ self.getElement( i, 0 ), _expandValues( self.getElement( i, 2 ).strip(), self.getElement( i, 1 ) ), self.getElement( i, 4 ) ] )
 						
 			# Generate the run listing from these rows.
 			runListing = []
 			# Start with the first row:
 			for value in rowsToInclude[0][1]:
-				runListing.append( rowsToInclude[0][0] + "_" + str( value )  + "/" )
+				invalidSpecifier = False
+				try:
+					formattedValue = str( _formatSpecifier( rowsToInclude[0][2] ) ).format( value )
+					runListing.append( rowsToInclude[0][0] + "_" + formattedValue + "/" )
+				except ValueError:
+					invalidSpecifier = True
+
+				if invalidSpecifier:
+					raise ScimitarGridError( "Invalid format specifier " + rowsToInclude[0][2] + " for value " + str( value ) + "." )
+
 			# Remove the first row from rowsToInclude:
 			del rowsToInclude[0]
 			
@@ -389,7 +413,16 @@ class ScimitarSpecies:
 				newRunListing = []
 				for run in runListing:
 					for value in row[1]:
-						newRunListing.append( run + row[0] + "_" + str( value ) + "/" )
+						invalidSpecifier = False
+						try:
+							formattedValue = str( _formatSpecifier( row[2] ) ).format( value )
+							newRunListing.append( run + row[0] + "_" + formattedValue + "/" )
+						except ValueError:
+							invalidSpecifier = True
+
+						if invalidSpecifier:
+							raise ScimitarGridError( "Invalid format specifier " + row[2] + " for value " + str( value ) + "." )
+
 				runListing = list( newRunListing )
 				
 			return runListing
