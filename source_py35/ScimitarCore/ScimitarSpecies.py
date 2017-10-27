@@ -286,8 +286,10 @@ class ScimitarSpecies:
 			for i in range( 0, self.numRows ):
 				dataType = self.getElement( i, 1 )
 				value = self.getElement( i, 2 )
+				specifier = self.getElement( i, 4 )
 				
 				if dataType.strip() == "int":
+					allValues = []  # Keep allValues in scope so we can check for duplicates later.
 					try:
 						allValues = _expandValues( value, "int" )
 						for val in allValues:
@@ -295,8 +297,23 @@ class ScimitarSpecies:
 								int( val )
 					except ValueError:
 						raise ScimitarGridError( "Value '" + value + "' in row " + str( i + 1 ) + " is not a valid int, list, or range." )
+
+					# Check for duplicates that appear after the format specifier is applied. Also verify that the
+					# format specifier is valid.
+					try:
+						strAllValues = []
+						for val in allValues:
+							strAllValues.append( str( _formatSpecifier( specifier ) ).format( val ) )
+					except ValueError:
+						raise ScimitarGridError( "Invalid format specifier '" + specifier + "' in row " + str( i + 1 ) + "." )
+
+					for val in strAllValues:
+						if strAllValues.count( val ) > 1:
+							raise ScimitarGridError( "Formatted value '" + val + "' is duplicated in row " + str( i + 1 ) + "." )
+
 					
 				elif dataType.strip() == "real":
+					allValues = []  # Keep allValues in scope so we can check for duplicates later.
 					try:
 						allValues = _expandValues( value, "real" )
 						for val in allValues:
@@ -304,6 +321,19 @@ class ScimitarSpecies:
 								int( val )
 					except ValueError:
 						raise ScimitarGridError( "Value '" + value + "' in row " + str( i + 1 ) + " is not a valid real, list, or range." )
+
+					# Check for duplicates that appear after the format specifier is applied. Also verify that the
+					# format specifier is valid.
+					try:
+						strAllValues = []
+						for val in allValues:
+							strAllValues.append( str( _formatSpecifier( specifier ) ).format( val ) )
+					except ValueError:
+						raise ScimitarGridError( "Invalid format specifier '" + specifier + "' in row " + str( i + 1 ) + "." )
+
+					for val in strAllValues:
+						if strAllValues.count( val ) > 1:
+							raise ScimitarGridError( "Formatted value '" + val + "' is duplicated in row " + str( i + 1 ) + "." )
 				
 				elif dataType.strip() == "file":
 					# Check if filename and column number are given in the correct format.
@@ -363,7 +393,8 @@ class ScimitarSpecies:
 				if not directoryOrders[i] == currentOrderToCheck:
 					raise ScimitarGridError( "All directory orders must be consecutive." )
 
-			# Attempt to generate the run listing. Pass along any generated exceptions.
+			# Attempt to generate the run listing. Pass along any generated exceptions. In principle, exceptions should
+			# not be generated at this point.
 			try:
 				self.generateRunListing()
 			except Exception as e:

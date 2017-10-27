@@ -145,7 +145,7 @@ class ScimitarMainForm( wx.Frame ):
 		toolbar_openRun = toolbar.AddTool( wx.ID_ANY, "Open Run", openRun_bmp, shortHelp = "Open an existing run file." )
 		toolbar_import = toolbar.AddTool( wx.ID_ANY, "Import", import_bmp, shortHelp="Import a set of parameters and values from a text file.")
 		# Disable analysis for release -- this feature is not ready yet.
-		#toolbar_analysis = toolbar.AddLabelTool( wx.ID_ANY, "Analysis", analysis_bmp, shortHelp="Analyze data produced by a Scimitar run.")
+		#toolbar_analysis = toolbar.AddTool( wx.ID_ANY, "Analysis", analysis_bmp, shortHelp="Analyze data produced by a Scimitar run.")
 		toolbar_help = toolbar.AddTool( 10, "Help", help_bmp, shortHelp = "Open the documentation for Scimitar." )
 		toolbar_exit = toolbar.AddTool( wx.ID_ANY, "Quit", close_bmp, shortHelp = "Quit Scimitar." )
 		
