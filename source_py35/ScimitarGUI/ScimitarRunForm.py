@@ -485,12 +485,14 @@ class ScimitarRunForm( wx.Frame ):
             self.run.runSettings.sourcePath = self._fixUnicodeResult( evt.GetProperty().GetValue() )
         elif evt.GetProperty().GetName() == "optionCompileSource":
             self.run.runSettings.optionCompileSource = evt.GetProperty().GetValue()
-        elif evt.GetProperty().GetName() == "optionBuildDirectorySTructure":
+        elif evt.GetProperty().GetName() == "optionBuildDirectoryStructure":
             self.run.runSettings.optionBuildDirectoryStructure = evt.GetProperty().GetValue()
         elif evt.GetProperty().GetName() == "optionDisableInputRedirection":
             self.run.runSettings.optionDisableInputRedirection = evt.GetProperty().GetValue()
         elif evt.GetProperty().GetName() == "optionGenerateCheckStatusScript":
             self.run.runSettings.optionGenerateCheckStatusScript = evt.GetProperty().GetValue()
+        else:
+            self.MainLog.WriteLogError( "Internal Error (W01): Invalid property passed when updating parameter grid. Please report issue to developer." )
 
     """
     Event Handler: Update the SingleMachineResourceManager module when an entry in the 
@@ -506,6 +508,8 @@ class ScimitarRunForm( wx.Frame ):
             self.run.availableModules.SingleMachineResourceManager.additionalPreExecutionCommands = self._fixUnicodeResult( evt.GetProperty().GetValue() )
         elif evt.GetProperty().GetName() == "additionalPostExecutionCommands":
             self.run.availableModules.SingleMachineResourceManager.additionalPostExecutionCommands = self._fixUnicodeResult( evt.GetProperty().GetValue() )
+        else:
+            self.MainLog.WriteLogError( "Internal Error (W02): Invalid property passed when updating parameter grid. Please report issue to developer." )
 
     def onUpdatePBSParameterGrid(self, evt):
         self.runStateModified = True
@@ -519,6 +523,9 @@ class ScimitarRunForm( wx.Frame ):
             self.run.availableModules.PBSResourceManager.additionalPreExecutionCommands = self._fixUnicodeResult( evt.GetProperty().GetValue() )
         elif evt.GetProperty().GetName() == "additionalPostExecutionCommands":
             self.run.availableModules.PBSResourceManager.additionalPostExecutionCommands = self._fixUnicodeResult( evt.GetProperty().GetValue() )
+        else:
+            self.MainLog.WriteLogError( "Internal Error (W03): Invalid property passed when updating parameter grid. Please report issue to developer." )
+
     """
     Event Handler: Update modules of a ScimitarRun to their latest versions.
     """
@@ -565,6 +572,8 @@ class ScimitarRunForm( wx.Frame ):
             self.run.activeResourceManager = self.run.availableModules.SingleMachineResourceManager
         elif evt.GetSelection() == 1:
             self.run.activeResourceManager = self.run.availableModules.PBSResourceManager
+        else:
+            self.MainLog.WriteLogError( "Internal Error (W04): Invalid selection passed when changing resource manager. Please report issue to developer." )
 
     # Event Handler for import in grid menu:
     # Leverages existing import functionality in ScimitarForm.py
