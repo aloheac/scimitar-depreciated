@@ -308,7 +308,7 @@ Research Fellowship Program under Grant No. DGE1144081."""
 		parameterGrid = []
 		try:
 			for i in range( 0, len( parameter ) ):
-				parameterGrid.append([parameter[i],'--',value[i],'--'])
+				parameterGrid.append([parameter[i],'--',value[i],'--','--'])
 		except Exception as err:
 			self.log.WriteLogError("[Unhandled Exception 11] " + str( err ) )
 			return
