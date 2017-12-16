@@ -186,7 +186,7 @@ class ScimitarMainForm( wx.Frame ):
 		# ***** END ABOUT DIALOG BOX *****
 		
 		self.log.WriteLogHeader("Welcome to Scimitar!")
-		self.log.WriteLogText("Version 6.0.5 (Oct 2017)\n")
+		self.log.WriteLogText("Version 6.0.6 (Dec 2017)\n")
 		self.log.WriteLogText("Need some guidance getting started?")
 		self.log.WriteLogText("Click on the 'Help' button above.\n")
 		self.log.WriteLogText("Date: " + strftime('%a %d %b %Y %H:%M:%S'))
@@ -243,7 +243,7 @@ Research Fellowship Program under Grant No. DGE1144081."""
 		info = wx.adv.AboutDialogInfo()
 		info.SetIcon( wx.Icon( basedir + '/resources/scimitar.png', wx.BITMAP_TYPE_PNG ) )
 		info.SetName('Scimitar')
-		info.SetVersion('6.0.5 (Oct 2017)')
+		info.SetVersion('6.0.6 (Dec 2017)')
 		info.SetDescription( description )
 		info.SetCopyright( copy )
 		info.SetWebSite('http://user.physics.unc.edu/~drut/public_html_UNC/scimitar.html')
