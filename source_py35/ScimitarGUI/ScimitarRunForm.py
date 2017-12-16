@@ -46,11 +46,12 @@ class RunNotebook( wx.Notebook ):
         RunForm.speciesGrid.SetColLabelValue( 2, "Value(s)")
         RunForm.speciesGrid.SetColLabelValue( 3, "Directory Order")
         RunForm.speciesGrid.SetColLabelValue( 4, "Format")
-        RunForm.speciesGrid.SetColSize( 3, 100 )
+        RunForm.speciesGrid.SetColSize( 0, 100 )
+        RunForm.speciesGrid.SetColSize( 3, 130 )
 
         # ***** RUN SETTINGS TAB *****
         runSettingsSizer = wx.BoxSizer( wx.VERTICAL )
-        RunForm.runPropertiesGrid = wx_propgrid.PropertyGrid( settingsPanel, size=(300, 300) )
+        RunForm.runPropertiesGrid = wx_propgrid.PropertyGrid( settingsPanel, size=(300, 300), style=wx_propgrid.PG_SPLITTER_AUTO_CENTER )
         runSettingsSizer.Add( RunForm.runPropertiesGrid, 2, wx.EXPAND )
         settingsPanel.SetSizerAndFit( runSettingsSizer )
 
@@ -68,11 +69,9 @@ class RunNotebook( wx.Notebook ):
         RunForm.runPropertiesGrid.Append( wx_propgrid.BoolProperty("Build directory structure", "optionBuildDirectoryStructure", RunForm.run.runSettings.optionBuildDirectoryStructure ) )
         RunForm.runPropertiesGrid.Append( wx_propgrid.BoolProperty("Disable input redirection", "optionDisableInputRedirection", RunForm.run.runSettings.optionDisableInputRedirection ) )
         RunForm.runPropertiesGrid.Append( wx_propgrid.BoolProperty("Generate status check script", "optionGenerateCheckStatusScript", RunForm.run.runSettings.optionGenerateCheckStatusScript ) )
-        RunForm.runPropertiesGrid.FitColumns()
 
         # ***** RESOURCES AND EXECUTION PANEL *****
         executionSettingsSizer = wx.BoxSizer( wx.VERTICAL )
-        RunForm.singleMachinePropertyGrid = wx_propgrid.PropertyGrid( executionPanel )
         RunForm.executionChoiceBook = wx.Choicebook( executionPanel, id=wx.ID_ANY )
         executionSettingsSizer.Add( RunForm.executionChoiceBook, 1, wx.EXPAND )
         executionPanel.SetSizerAndFit( executionSettingsSizer )
@@ -88,7 +87,7 @@ class RunNotebook( wx.Notebook ):
         #RunForm.executionChoiceBook.AddPage( panelPBSMPI, "PBS Scheduler on Cluster using MPI")
 
         # SINGLE MACHINE SETTINGS
-        RunForm.propertyGridSingleMachine = wx_propgrid.PropertyGrid( panelSingleMachine )
+        RunForm.propertyGridSingleMachine = wx_propgrid.PropertyGrid( panelSingleMachine, style=wx_propgrid.PG_SPLITTER_AUTO_CENTER )
         sizerGridSingleMachine = wx.BoxSizer( wx.VERTICAL )
         sizerGridSingleMachine.Add( RunForm.propertyGridSingleMachine, 1, wx.EXPAND )
         panelSingleMachine.SetSizerAndFit( sizerGridSingleMachine )
@@ -98,10 +97,9 @@ class RunNotebook( wx.Notebook ):
         RunForm.propertyGridSingleMachine.Append( wx_propgrid.PropertyCategory( "Additional Commands" ) )
         RunForm.propertyGridSingleMachine.Append( wx_propgrid.LongStringProperty( "Additional pre-execution commands", "additionalPreExecutionCommands", RunForm.run.availableModules.SingleMachineResourceManager.additionalPreExecutionCommands ) )
         RunForm.propertyGridSingleMachine.Append( wx_propgrid.LongStringProperty( "Additional post-execution commands", "additionalPostExecutionCommands", RunForm.run.availableModules.SingleMachineResourceManager.additionalPostExecutionCommands ) )
-        RunForm.propertyGridSingleMachine.FitColumns()
 
         # PBS SETTINGS
-        RunForm.propertyGridPBS = wx_propgrid.PropertyGrid( panelPBS )
+        RunForm.propertyGridPBS = wx_propgrid.PropertyGrid( panelPBS, style=wx_propgrid.PG_SPLITTER_AUTO_CENTER )
         sizerGridPBS = wx.BoxSizer( wx.VERTICAL )
         sizerGridPBS.Add( RunForm.propertyGridPBS, 1, wx.EXPAND )
         panelPBS.SetSizerAndFit( sizerGridPBS )
@@ -112,7 +110,6 @@ class RunNotebook( wx.Notebook ):
         RunForm.propertyGridPBS.Append( wx_propgrid.PropertyCategory( "Additional Commands" ) )
         RunForm.propertyGridPBS.Append( wx_propgrid.LongStringProperty( "Additional pre-execution commands", "additionalPreExecutionCommands", RunForm.run.availableModules.PBSResourceManager.additionalPreExecutionCommands ) )
         RunForm.propertyGridPBS.Append( wx_propgrid.LongStringProperty( "Additional post-execution commands", "additionalPostExecutionCommands", RunForm.run.availableModules.PBSResourceManager.additionalPostExecutionCommands ) )
-        RunForm.propertyGridPBS.FitColumns()
 
 """
 Basic ParameterGrid that inherits from wx.grid.Grid.
