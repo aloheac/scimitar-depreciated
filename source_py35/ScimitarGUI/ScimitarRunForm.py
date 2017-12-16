@@ -243,7 +243,14 @@ Form definition for the Scimitar Run Editor.
 """
 class ScimitarRunForm( wx.Frame ):
     def __init__(self, parent, run, runPath ):
-        wx.Frame.__init__(self, parent, -1, 'Scimitar Run Editor', size=(600,500) )
+        # Obtain opened run file path string, which will be displayed in the title bar of the run window. The value of
+        # runPath will be None if the run is a new file or has been imported from a parameter file; this case needs to
+        # be checked and handled.
+        str_runPath = ""
+        if runPath != None:
+            str_runPath = " (" + str( runPath ) + ")"
+
+        wx.Frame.__init__(self, parent, -1, 'Scimitar Run Editor' + str_runPath, size=(600,500) )
 
         self.parent = parent
         self.MainLog = parent.log
