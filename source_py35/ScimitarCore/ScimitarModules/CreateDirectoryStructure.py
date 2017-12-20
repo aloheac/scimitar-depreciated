@@ -83,7 +83,7 @@ class CreateDirectoryStructure( PreExecutionModule ):
 		contribution += "	print( '            may overwrite existing data. If you are restarting a run after it' )\n"
 		contribution += "	print( '            aborted, please continue.' )\n"
 		contribution += "	while True:\n"
-		contribution += "		userResponse = raw_input( 'Do you want to continue running the script? (y/n): ' )\n"
+		contribution += "		userResponse = input( 'Do you want to continue running the script? (y/n): ' )\n"
 		contribution += "		if userResponse == 'y':\n"
 		contribution += "			okayToCreateDirectoryStructure = False\n"
 		contribution += "			print( '>> Continuing the script with the existing directory structure.' )\n"
