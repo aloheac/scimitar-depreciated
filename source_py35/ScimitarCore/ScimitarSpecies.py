@@ -455,7 +455,11 @@ class ScimitarSpecies:
 							raise ScimitarGridError( "Invalid format specifier " + row[2] + " for value " + str( value ) + "." )
 
 				runListing = list( newRunListing )
-				
+
+			# Remove the trailing '/' from each entry in runListing.
+			for i in range( 0, len( runListing ) ):
+				runListing[i] = runListing[i][:-1]
+
 			return runListing
 		
 		"""

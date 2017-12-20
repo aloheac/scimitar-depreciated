@@ -47,27 +47,25 @@ class CreateDirectoryStructure( PreExecutionModule ):
 		# Import external modules.
 		contribution += 'from subprocess import Popen\n'
 		contribution += 'import os\n\n'
-		
+
 		# Private function for generating input file for a run.
 		contribution += "def _createInputFileForRun( run, parameterList, valueList, formatList ):\n"
 		contribution += "	run = run.split('/')\n"
-		contribution += "	splitRuns = []\n"
-		contribution += "	for r in run:\n"
-		contribution += "		rs = r.split('_')\n"
-		contribution += "		splitRuns.append(['_'.join(rs[0:-1]), rs[-1]])\n"
-		contribution += "		inputFile = ''\n"	
-		contribution += "		for i in range( 0, len( parameterList ) ):\n"
-		contribution += "			valueToAdd = ''\n"
-		contribution += "			parameterToAdd = ''\n"
-		contribution += "			for j in range( 0, len( splitRuns ) ):\n"
-		contribution += "				if parameterList[i] == splitRuns[j][0]:\n"
-		contribution += "					parameterToAdd = str( parameterList[i] )\n"
-		contribution += "					valueToAdd = str( splitRuns[j][1] )\n"
-		contribution += "					break\n"
-		contribution += "			if valueToAdd == '' and parameterToAdd == '':\n"
-		contribution += "				inputFile += str( formatList[i] ).format( valueList[i] ) + '\t#' + str( parameterList[i] ) + '\\n'\n"
-		contribution += "			else:\n"
-		contribution += "				inputFile += valueToAdd + '\t#' + parameterToAdd + '\\n'\n"
+		contribution += "	uniqueParams = []\n"
+		contribution += "	for pair in run:\n"
+		contribution += "		pair_s = pair.split('_')\n"
+		contribution += "		uniqueParams.append( (pair_s[0], pair_s[1]) )\n\n"
+		contribution += "	inputFile = ''\n"
+		contribution += "	for i in range( 0, len( parameterList ) ):\n"
+		contribution += "		value = None\n"
+		contribution += "		for j in range( 0, len( uniqueParams ) ):\n"
+		contribution += "			if uniqueParams[j][0] == parameterList[i]:\n"
+		contribution += "				value = uniqueParams[j][1]\n"
+		contribution += "				break\n"
+
+		contribution += "		if value == None:\n"
+		contribution += "			value = str( formatList[i] ).format( valueList[i] )\n\n"
+		contribution += "		inputFile += value + '\t#' + parameterList[i] + '\\n'\n"
 		contribution +=	"	return inputFile\n\n"
 		
 		# Initialize parameters. Recall that the run listing is given as a global variable.
