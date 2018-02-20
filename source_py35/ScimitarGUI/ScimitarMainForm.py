@@ -226,7 +226,7 @@ class ScimitarMainForm( wx.Frame ):
 	"""
 	def onAboutBox(self, evt):
 		description = """A visual driver for parameter-space exploration."""
-		copy = """(C) 2013 - 2017 Joaquin E. Drut, et al.
+		copy = """(C) 2013 - 2018 Joaquin E. Drut, et al.
 Department of Physics and Astronomy
 University of North Carolina at Chapel Hill
 
