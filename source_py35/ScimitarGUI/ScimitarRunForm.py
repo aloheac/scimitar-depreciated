@@ -431,6 +431,7 @@ class ScimitarRunForm( wx.Frame ):
 
         self.runPath = saveFileDialog.GetPath()
         self.runStateModified = False
+        self.SetTitle("Scimitar Run Editor (" + self.runPath + ")")
         self.MainLog.WriteLogText("Run file '" + str( saveFileDialog.GetPath() ) + "' saved as.")
         return True
 
