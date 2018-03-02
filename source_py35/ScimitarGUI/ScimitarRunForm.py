@@ -69,6 +69,7 @@ class RunNotebook( wx.Notebook ):
         RunForm.runPropertiesGrid.Append( wx_propgrid.BoolProperty("Build directory structure", "optionBuildDirectoryStructure", RunForm.run.runSettings.optionBuildDirectoryStructure ) )
         RunForm.runPropertiesGrid.Append( wx_propgrid.BoolProperty("Disable input redirection", "optionDisableInputRedirection", RunForm.run.runSettings.optionDisableInputRedirection ) )
         RunForm.runPropertiesGrid.Append( wx_propgrid.BoolProperty("Generate status check script", "optionGenerateCheckStatusScript", RunForm.run.runSettings.optionGenerateCheckStatusScript ) )
+        RunForm.runPropertiesGrid.Append( wx_propgrid.IntProperty("Number of split scripts", "optionNumberOfSplitScripts", RunForm.run.runSettings.optionNumberOfSplitScripts ) )
 
         # ***** RESOURCES AND EXECUTION PANEL *****
         executionSettingsSizer = wx.BoxSizer( wx.VERTICAL )
@@ -489,6 +490,8 @@ class ScimitarRunForm( wx.Frame ):
             self.run.runSettings.optionDisableInputRedirection = evt.GetProperty().GetValue()
         elif evt.GetProperty().GetName() == "optionGenerateCheckStatusScript":
             self.run.runSettings.optionGenerateCheckStatusScript = evt.GetProperty().GetValue()
+        elif evt.GetProperty().GetName() == "optionNumberOfSplitScripts":
+            self.run.runSettings.optionNumberOfSplitScripts = evt.GetProperty().GetValue()
         else:
             self.MainLog.WriteLogError( "Internal Error (W01): Invalid property passed when updating parameter grid. Please report issue to developer." )
 

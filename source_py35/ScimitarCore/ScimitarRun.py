@@ -11,6 +11,7 @@
 # University of North Carolina at Chapel Hill
 ####################################################################
 
+from math import floor
 import ScimitarCore.ScimitarModules
 from ScimitarCore.ScimitarSpecies import *
 
@@ -55,6 +56,7 @@ class RunSettings:
 			self.optionBuildDirectoryStructure = True
 			self.optionDisableInputRedirection = False
 			self.optionGenerateCheckStatusScript = False
+			self.optionNumberOfSplitScripts = 1
 
 """
 Struct containing instantiations of all available modules.
@@ -151,30 +153,58 @@ class ScimitarRun:
 	Generate the script for this run.
 	"""
 	def generateScript( self ):
-		# Start with an empty script.
-		script = ""
+		# Obtain the run listing for this run in its entirety.
+		completeRunListing = self.species.generateRunListing()
 
-		# Copy the run listing into the top of the script as a global variable. Individual
-		# modules should reference this global variable directly.
-		script += "runListing = " + str( self.species.generateRunListing() ) + "\n"
-		
-		# Sort the execution modules by priority.
-		_sortModuleList( self.activePreExecutionModules )
-		_sortModuleList( self.activePostExecutionModules )
-		
-		# Load the pre-execution module.
-		for module in self.activePreExecutionModules:
-			script += module.getScriptContribution()
-		
-		# Load the execution module.
-		if self.activeResourceManager == "NO_RESOURCE_MANAGER":
-			raise ScimitarRunError( "There does not seem to be a valid resource manager loaded!")
+		# Split the run listing according to number of split scripts requested.
+		numRunsPerScript = floor( len( completeRunListing ) / self.runSettings.optionNumberOfSplitScripts )
+		runListings = []
+		verifiedRunCount = 0
+		i = 0  # Loop counter.
+		while i < len( completeRunListing ):
+			if i + numRunsPerScript > len( completeRunListing ):
+				runListings.append( completeRunListing[i:] )  # Add remaining runs to last script.
+				verifiedRunCount += len( completeRunListing[i:] )
+			else:
+				runListings.append( completeRunListing[i:i + numRunsPerScript] )
+				verifiedRunCount += len( completeRunListing[i:i + numRunsPerScript] )
 
-		script += self.activeResourceManager.getScriptContribution()
-		
-		# Load the post-execution module.
-		for module in self.activePostExecutionModules:
-			script += module.getScriptContribution()
-			
-		script += "\nprint('>> Scimitar submission script complete.')\n"
-		return script
+			i += numRunsPerScript
+
+		# Verify the total number of runs across all scripts is correct.
+		if verifiedRunCount != len( completeRunListing ):
+			raise ScimitarRunError( "Failed self-consistency check: mismatched total number of runs across split scripts." )
+
+		# Iterate over split runs to generate script text.
+		scripts = []
+		for listing in runListings:
+			# Start with an empty script.
+			script = ""
+
+			# Copy the run listing into the top of the script as a global variable. Individual
+			# modules should reference this global variable directly.
+			script += "runListing = " + str( listing ) + "\n"
+
+			# Sort the execution modules by priority.
+			_sortModuleList( self.activePreExecutionModules )
+			_sortModuleList( self.activePostExecutionModules )
+
+			# Load the pre-execution module.
+			for module in self.activePreExecutionModules:
+				script += module.getScriptContribution()
+
+			# Load the execution module.
+			if self.activeResourceManager == "NO_RESOURCE_MANAGER":
+				raise ScimitarRunError( "There does not seem to be a valid resource manager loaded!")
+
+			script += self.activeResourceManager.getScriptContribution()
+
+			# Load the post-execution module.
+			for module in self.activePostExecutionModules:
+				script += module.getScriptContribution()
+
+			script += "\nprint('>> Scimitar submission script complete.')\n"
+
+			scripts.append( script )
+
+		return scripts

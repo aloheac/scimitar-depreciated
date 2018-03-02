@@ -31,10 +31,22 @@ def openRunFromFile( filename ):
     f.close()
     
 '''
-Write a script to file.
+Write a set of scripts to file.
 '''
-def writeScriptToFile( script, filename ):
-    f = open( filename, 'w' )
-    f.write( script )
-    f.close()
+def writeScriptToFile( scripts, filename ):
+    if len( scripts ) == 1:  # We are only writing one script. Use provided filename as is.
+        f = open( filename, 'w' )
+        f.write( scripts[0] )
+        f.close()
+    else:
+        for i in range( 0, len( scripts ) ):
+            # Generate filename with script number appended.
+            splitFilename = filename.rsplit(".", 1)
+            nextFilename = filename + "_" + str( i )  # Default for any unconventional filenames.
+            if len( splitFilename ) == 2:
+                nextFilename = splitFilename[0] + "_" + str( i ) + "." + splitFilename[1]
+
+            f = open( nextFilename, 'w' )
+            f.write( scripts[i] )
+            f.close()
     
