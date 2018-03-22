@@ -11,7 +11,7 @@
 # University of North Carolina at Chapel Hill
 ####################################################################
 
-from math import floor
+from math import ceil
 import ScimitarCore.ScimitarModules
 from ScimitarCore.ScimitarSpecies import *
 
@@ -157,7 +157,7 @@ class ScimitarRun:
 		completeRunListing = self.species.generateRunListing()
 
 		# Split the run listing according to number of split scripts requested.
-		numRunsPerScript = floor( len( completeRunListing ) / self.runSettings.optionNumberOfSplitScripts )
+		numRunsPerScript = ceil( len( completeRunListing ) / self.runSettings.optionNumberOfSplitScripts )
 		runListings = []
 		verifiedRunCount = 0
 		i = 0  # Loop counter.
