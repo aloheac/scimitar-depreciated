@@ -175,6 +175,10 @@ class ScimitarRun:
 		if verifiedRunCount != len( completeRunListing ):
 			raise ScimitarRunError( "Failed self-consistency check: mismatched total number of runs across split scripts." )
 
+		# Verify the number of requested split scripts is correct.
+		if len(runListings) != self.runSettings.optionNumberOfSplitScripts:
+			raise ScimitarRunError( "Failed self-consistency check: number of split scripts unequal to requested count.")
+
 		# Iterate over split runs to generate script text.
 		scripts = []
 		for listing in runListings:
