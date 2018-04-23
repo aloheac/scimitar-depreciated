@@ -263,7 +263,13 @@ class ScimitarRunForm( wx.Frame ):
         self.moduleSingleMachineResourceManager = ScimitarCore.ScimitarModules.SingleMachineResourceManager( run )
         self.moduleCompileSource = ScimitarCore.ScimitarModules.CompileSource( run )
 
-        self.InitializeUI( run.species.numRows, run.species.numColumns )
+        # If a AttributeError exception is encountered when initializing the UI, it is generally because an invalid or older
+        # run file load was attempted. Report the error to the main log.
+        try:
+            self.InitializeUI( run.species.numRows, run.species.numColumns )
+        except AttributeError:
+            self.MainLog.WriteLogError("The run could not be initialized. If a run file was opened, the file was likely created with an older version of Scimitar that is not compatible.")
+            return
 
         # Load parameter grid from the run.
         for i in range( 0, run.species.numRows ):

@@ -211,8 +211,8 @@ class ScimitarMainForm( wx.Frame ):
 		except Exception as err:
 			self.log.WriteLogError( "[Unhandled Exception 1: " + err.__class__.__name__ + "] " + str( err ) )
 			return
-		
-		newRunEditor = ScimitarRunForm( self, loadedRun, openFileDialog.GetPath() )
+
+		ScimitarRunForm( self, loadedRun, openFileDialog.GetPath() )
 		
 	"""
 	Event Handler: Create a new run using defaults.
